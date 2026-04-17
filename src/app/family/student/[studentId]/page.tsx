@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import type { Course, Lesson, Profile, ProgressLog } from "@/lib/types";
+import StudentProgressDashboard from "@/components/StudentProgressDashboard";
+import type { Course, Lesson, Profile, ProgressLog, Quiz, QuizAttempt } from "@/lib/types";
 
 interface Props {
   params: Promise<{ studentId: string }>;
@@ -17,7 +18,6 @@ export default async function StudentProgressPage({ params }: Props) {
   const { data: profileData } = await supabase
     .from("profiles").select("*").eq("id", user.id).single();
   const profile = profileData as unknown as Profile | null;
-
   if (profile?.role === "student") redirect("/dashboard");
 
   const { data: studentData } = await supabase
@@ -25,37 +25,51 @@ export default async function StudentProgressPage({ params }: Props) {
   if (!studentData) notFound();
   const student = studentData as unknown as Profile;
 
-  // Ensure same org
   if (student.org_id !== profile?.org_id && profile?.role !== "founder") {
     redirect("/family");
   }
 
-  const { data: progressData } = await supabase
-    .from("progress_logs")
-    .select("*")
-    .eq("student_id", studentId);
+  // Fetch all data in parallel
+  const [
+    { data: coursesData },
+    { data: progressData },
+    { data: quizAttemptsData },
+  ] = await Promise.all([
+    supabase.from("courses").select("*").eq("is_published", true).order("created_at"),
+    supabase.from("progress_logs").select("*").eq("student_id", studentId),
+    (supabase as any).from("quiz_attempts").select("*").eq("student_id", studentId).order("created_at", { ascending: false }),
+  ]);
 
-  const logs = (progressData as unknown as ProgressLog[]) ?? [];
-  const completedLessonIds = new Set(
-    logs.filter((l) => l.status === "completed").map((l) => l.lesson_id)
+  const courses = (coursesData as unknown as Course[]) ?? [];
+  const allLogs = (progressData as unknown as ProgressLog[]) ?? [];
+  const allAttempts = (quizAttemptsData as unknown as QuizAttempt[]) ?? [];
+
+  // Fetch lessons + quizzes for every course
+  const courseDetails = await Promise.all(
+    courses.map(async (course) => {
+      const [{ data: lessonsData }, { data: quizzesData }] = await Promise.all([
+        supabase.from("lessons").select("*").eq("course_id", course.id).order("position"),
+        (supabase as any).from("quizzes").select("*").eq("course_id", course.id).eq("is_published", true),
+      ]);
+      return {
+        course,
+        lessons: (lessonsData as unknown as Lesson[]) ?? [],
+        quizzes: (quizzesData as unknown as Quiz[]) ?? [],
+      };
+    })
   );
 
-  const { data: coursesData } = await supabase
-    .from("courses").select("*").eq("is_published", true);
-  const courses = (coursesData as unknown as Course[]) ?? [];
-
-  const courseProgress: Array<{
-    course: Course;
-    lessons: Lesson[];
-    completed: number;
-  }> = [];
-
-  for (const course of courses) {
-    const { data: lessonsData } = await supabase
-      .from("lessons").select("*").eq("course_id", course.id).order("position");
-    const lessons = (lessonsData as unknown as Lesson[]) ?? [];
-    const completed = lessons.filter((l) => completedLessonIds.has(l.id)).length;
-    courseProgress.push({ course, lessons, completed });
+  // Build lookup maps
+  const logByLesson: Record<string, ProgressLog> = Object.fromEntries(
+    allLogs.map((l) => [l.lesson_id, l])
+  );
+  // Best attempt per quiz
+  const bestAttemptByQuiz: Record<string, QuizAttempt> = {};
+  for (const attempt of allAttempts) {
+    const existing = bestAttemptByQuiz[attempt.quiz_id];
+    if (!existing || attempt.score > existing.score) {
+      bestAttemptByQuiz[attempt.quiz_id] = attempt;
+    }
   }
 
   return (
@@ -65,44 +79,13 @@ export default async function StudentProgressPage({ params }: Props) {
         <a href="/family" className="text-sm text-talab-500 hover:text-talab-400 inline-flex items-center gap-1 mb-6">
           ← Back to Family
         </a>
-
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 rounded-full bg-talab-900/50 border border-talab-800 flex items-center justify-center text-lg font-bold text-talab-400">
-            {student.full_name?.[0]?.toUpperCase() ?? "?"}
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">{student.full_name}</h1>
-            <p className="text-gray-400 text-sm">
-              {completedLessonIds.size} lessons completed across {courses.length} courses
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {courseProgress.map(({ course, lessons, completed }) => {
-            const pct = lessons.length > 0 ? Math.round((completed / lessons.length) * 100) : 0;
-            return (
-              <div key={course.id} className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="text-white font-medium">{course.title}</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">{course.subject_category}</p>
-                  </div>
-                  <span className="text-sm font-semibold text-talab-400">{pct}%</span>
-                </div>
-                <div className="w-full bg-gray-800 rounded-full h-1.5">
-                  <div
-                    className="bg-talab-500 h-1.5 rounded-full transition-all"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <p className="text-xs text-gray-600 mt-2">
-                  {completed} / {lessons.length} lessons
-                </p>
-              </div>
-            );
-          })}
-        </div>
+        <StudentProgressDashboard
+          student={student}
+          courseDetails={courseDetails}
+          logByLesson={logByLesson}
+          bestAttemptByQuiz={bestAttemptByQuiz}
+          totalAttempts={allAttempts.length}
+        />
       </main>
     </div>
   );
