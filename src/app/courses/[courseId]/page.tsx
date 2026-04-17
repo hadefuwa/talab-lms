@@ -3,7 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import LessonList from "@/components/LessonList";
 import Link from "next/link";
-import type { Course, Lesson, Profile, ProgressLog, Quiz } from "@/lib/types";
+import type { Course, Lesson, Organization, Profile, ProgressLog, Quiz } from "@/lib/types";
 
 interface Props {
   params: Promise<{ courseId: string }>;
@@ -33,6 +33,16 @@ export default async function CoursePage({ params }: Props) {
   const profile = profileData as unknown as Profile | null;
   const course = courseData as unknown as Course;
   const lessons = (lessonsData as unknown as Lesson[]) ?? [];
+
+  // Access check — founders always pass; free courses always pass
+  const isFounder = profile?.role === "founder";
+  let hasAccess = isFounder || course.is_free;
+  if (!hasAccess && profile?.org_id) {
+    const { data: orgData } = await supabase
+      .from("organizations").select("subscription_status").eq("id", profile.org_id).single();
+    const org = orgData as unknown as Organization | null;
+    hasAccess = org?.subscription_status === "active" || org?.subscription_status === "trialing";
+  }
   const quizzes = (quizzesData as unknown as Quiz[]) ?? [];
 
   const visibleQuizzes = profile?.role === "founder"
@@ -87,7 +97,22 @@ export default async function CoursePage({ params }: Props) {
           </div>
         </div>
 
-        <LessonList lessons={lessons} courseId={courseId} progressMap={progressMap} />
+        {!hasAccess && (
+          <div className="mb-6 bg-amber-900/20 border border-amber-700/50 rounded-2xl px-6 py-5 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-amber-300 font-semibold">Premium Course</p>
+              <p className="text-amber-400/70 text-sm mt-0.5">Subscribe to unlock all lessons in this course.</p>
+            </div>
+            <Link
+              href="/billing"
+              className="flex-shrink-0 px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold rounded-xl transition-colors"
+            >
+              Subscribe
+            </Link>
+          </div>
+        )}
+
+        <LessonList lessons={lessons} courseId={courseId} progressMap={progressMap} hasAccess={hasAccess} />
 
         {/* Quizzes section */}
         {visibleQuizzes.length > 0 && (

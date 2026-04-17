@@ -5,7 +5,7 @@ import VideoPlayer from "@/components/VideoPlayer";
 import GeminiSidebar from "@/components/GeminiSidebar";
 import ProgressButton from "@/components/ProgressButton";
 import GameLesson from "@/components/GameLesson";
-import type { Lesson, Profile, ProgressLog } from "@/lib/types";
+import type { Course, Lesson, Organization, Profile, ProgressLog } from "@/lib/types";
 
 interface Props {
   params: Promise<{ lessonId: string }>;
@@ -20,13 +20,25 @@ export default async function LessonPage({ params }: Props) {
 
   const [{ data: profileData }, { data: lessonData }] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).single(),
-    supabase.from("lessons").select("*, courses(id, title)").eq("id", lessonId).single(),
+    supabase.from("lessons").select("*, courses(id, title, is_free)").eq("id", lessonId).single(),
   ]);
 
   if (!lessonData) notFound();
 
   const profile = profileData as unknown as Profile | null;
-  const lesson = lessonData as unknown as Lesson & { courses: { id: string; title: string } };
+  const lesson = lessonData as unknown as Lesson & { courses: { id: string; title: string; is_free: boolean } };
+
+  // Enforce subscription gate on premium lessons
+  if (profile?.role !== "founder" && !lesson.courses.is_free) {
+    let hasAccess = false;
+    if (profile?.org_id) {
+      const { data: orgData } = await supabase
+        .from("organizations").select("subscription_status").eq("id", profile.org_id).single();
+      const org = orgData as unknown as Organization | null;
+      hasAccess = org?.subscription_status === "active" || org?.subscription_status === "trialing";
+    }
+    if (!hasAccess) redirect("/billing");
+  }
 
   const { data: progressData } = await supabase
     .from("progress_logs")

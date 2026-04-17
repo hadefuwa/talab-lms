@@ -23,6 +23,7 @@ export interface Course {
   description: string | null;
   subject_category: string;
   is_published: boolean;
+  is_free: boolean;
   thumbnail_key: string | null;
   created_at: string;
 }

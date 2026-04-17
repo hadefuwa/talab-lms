@@ -31,6 +31,7 @@ export default function CourseForm({ course }: Props) {
       description: (fd.get("description") as string) || null,
       subject_category: fd.get("subject_category") as string,
       is_published: fd.get("is_published") === "on",
+      is_free: fd.get("is_free") === "on",
     };
 
     if (isEdit) {
@@ -95,13 +96,25 @@ export default function CourseForm({ course }: Props) {
         />
       </div>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox" name="is_published" id="is_published"
-          defaultChecked={course?.is_published ?? false}
-          className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-talab-600"
-        />
-        <label htmlFor="is_published" className="text-sm text-gray-300">Published</label>
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox" name="is_published" id="is_published"
+            defaultChecked={course?.is_published ?? false}
+            className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-talab-600"
+          />
+          <label htmlFor="is_published" className="text-sm text-gray-300">Published</label>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox" name="is_free" id="is_free"
+            defaultChecked={course?.is_free ?? false}
+            className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-talab-600"
+          />
+          <label htmlFor="is_free" className="text-sm text-gray-300">
+            Free course <span className="text-gray-500 font-normal">(no subscription needed)</span>
+          </label>
+        </div>
       </div>
 
       <button
