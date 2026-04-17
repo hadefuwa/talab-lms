@@ -1,11 +1,8 @@
--- Enable UUID extension
-create extension if not exists "uuid-ossp";
-
 -- ============================================
 -- ORGANIZATIONS (family units)
 -- ============================================
 create table public.organizations (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   name text not null,
   subscription_status text not null default 'inactive'
     check (subscription_status in ('active', 'inactive', 'trialing')),
@@ -48,7 +45,7 @@ create trigger on_auth_user_created
 -- COURSES (global curriculum, founder-owned)
 -- ============================================
 create table public.courses (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   title text not null,
   description text,
   subject_category text not null default 'Other',
@@ -61,7 +58,7 @@ create table public.courses (
 -- LESSONS (global content, founder-owned)
 -- ============================================
 create table public.lessons (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   course_id uuid not null references public.courses(id) on delete cascade,
   title text not null,
   r2_key text,
@@ -77,7 +74,7 @@ create index lessons_course_id_position on public.lessons(course_id, position);
 -- PROGRESS LOGS (per-student, org-scoped)
 -- ============================================
 create table public.progress_logs (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.profiles(id) on delete cascade,
   lesson_id uuid not null references public.lessons(id) on delete cascade,
   org_id uuid not null references public.organizations(id) on delete cascade,
