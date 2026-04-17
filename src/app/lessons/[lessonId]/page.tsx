@@ -45,12 +45,22 @@ export default async function LessonPage({ params }: Props) {
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
             <div>
-              <a
-                href={`/courses/${lesson.course_id}`}
-                className="text-sm text-talab-500 hover:text-talab-400 inline-flex items-center gap-1"
-              >
-                ← Back to Course
-              </a>
+              <div className="flex items-center justify-between">
+                <a
+                  href={`/courses/${lesson.course_id}`}
+                  className="text-sm text-talab-500 hover:text-talab-400 inline-flex items-center gap-1"
+                >
+                  ← Back to Course
+                </a>
+                {profile?.role === "founder" && (
+                  <a
+                    href={`/admin/lessons/${lessonId}/edit`}
+                    className="text-xs text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    Edit Lesson
+                  </a>
+                )}
+              </div>
               <h1 className="text-2xl font-bold text-white mt-3">{lesson.title}</h1>
             </div>
 
