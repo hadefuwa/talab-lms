@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import VideoPlayer from "@/components/VideoPlayer";
 import GeminiSidebar from "@/components/GeminiSidebar";
 import ProgressButton from "@/components/ProgressButton";
+import GameLesson from "@/components/GameLesson";
 import type { Lesson, Profile, ProgressLog } from "@/lib/types";
 
 interface Props {
@@ -53,21 +54,29 @@ export default async function LessonPage({ params }: Props) {
               <h1 className="text-2xl font-bold text-white mt-3">{lesson.title}</h1>
             </div>
 
-            {lesson.r2_key && (
-              <VideoPlayer lessonId={lessonId} r2Key={lesson.r2_key} />
+            {lesson.lesson_type === "game" && lesson.game_path ? (
+              <GameLesson
+                lesson={lesson}
+                orgId={profile?.org_id ?? ""}
+                existingProgress={progress}
+              />
+            ) : (
+              <>
+                {lesson.r2_key && (
+                  <VideoPlayer lessonId={lessonId} r2Key={lesson.r2_key} />
+                )}
+                {lesson.content_body && (
+                  <div className="prose prose-invert max-w-none bg-gray-900 border border-gray-800 rounded-xl p-6">
+                    <div dangerouslySetInnerHTML={{ __html: lesson.content_body }} />
+                  </div>
+                )}
+                <ProgressButton
+                  lessonId={lessonId}
+                  orgId={profile?.org_id ?? ""}
+                  currentStatus={progress?.status ?? "not_started"}
+                />
+              </>
             )}
-
-            {lesson.content_body && (
-              <div className="prose prose-invert max-w-none bg-gray-900 border border-gray-800 rounded-xl p-6">
-                <div dangerouslySetInnerHTML={{ __html: lesson.content_body }} />
-              </div>
-            )}
-
-            <ProgressButton
-              lessonId={lessonId}
-              orgId={profile?.org_id ?? ""}
-              currentStatus={progress?.status ?? "not_started"}
-            />
           </div>
         </main>
 

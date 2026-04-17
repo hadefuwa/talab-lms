@@ -35,6 +35,9 @@ export interface Lesson {
   content_body: string | null;
   position: number;
   duration_seconds: number | null;
+  lesson_type: "content" | "video" | "game";
+  game_path: string | null;
+  game_pass_score: number | null;
   created_at: string;
 }
 
@@ -45,6 +48,7 @@ export interface ProgressLog {
   org_id: string;
   status: "not_started" | "in_progress" | "completed";
   completed_at: string | null;
+  game_score: number | null;
   created_at: string;
 }
 
