@@ -1,0 +1,14 @@
+name = "talab-gatekeeper"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+
+[vars]
+SUPABASE_URL = ""          # Set in Cloudflare dashboard secrets
+SUPABASE_ANON_KEY = ""     # Set in Cloudflare dashboard secrets
+
+[[r2_buckets]]
+binding = "TALAB_BUCKET"
+bucket_name = "talab-content"
+
+[observability]
+enabled = true
