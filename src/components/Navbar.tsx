@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import type { Profile } from "@/lib/types";
 
 interface Props {
@@ -12,6 +12,7 @@ interface Props {
 
 export default function Navbar({ profile }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClient();
 
   async function handleSignOut() {
@@ -20,20 +21,43 @@ export default function Navbar({ profile }: Props) {
     router.refresh();
   }
 
+  const navLinks = [
+    { href: "/dashboard", label: "Courses" },
+    ...(profile?.role !== "student" ? [{ href: "/family", label: "Family" }] : []),
+    ...(profile?.role !== "student" ? [{ href: "/billing", label: "Billing" }] : []),
+  ];
+
   return (
     <nav className="border-b border-gray-800 bg-gray-950/80 backdrop-blur-md sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-talab-600 rounded-lg flex items-center justify-center text-xs font-bold text-white">
-              T
+          <div className="flex items-center gap-6">
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-talab-600 rounded-lg flex items-center justify-center text-xs font-bold text-white">
+                T
+              </div>
+              <span className="font-semibold text-white text-sm">Talab LMS</span>
+            </Link>
+            <div className="hidden sm:flex items-center gap-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                    pathname === link.href
+                      ? "bg-gray-800 text-white"
+                      : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
-            <span className="font-semibold text-white text-sm">Talab LMS</span>
-          </Link>
+          </div>
 
           <div className="flex items-center gap-3">
             {profile?.role === "founder" && (
-              <span className="text-xs bg-talab-900/50 text-talab-400 border border-talab-800 px-2 py-0.5 rounded-full">
+              <span className="text-xs bg-talab-900/50 text-talab-400 border border-talab-800 px-2 py-0.5 rounded-full hidden sm:inline">
                 Founder
               </span>
             )}
