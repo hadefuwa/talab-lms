@@ -48,6 +48,39 @@ export interface ProgressLog {
   created_at: string;
 }
 
+export interface Quiz {
+  id: string;
+  course_id: string;
+  title: string;
+  description: string | null;
+  pass_score: number;
+  is_published: boolean;
+  created_at: string;
+}
+
+export interface QuizQuestion {
+  id: string;
+  quiz_id: string;
+  question: string;
+  options: string[];
+  correct_index: number;
+  explanation: string | null;
+  position: number;
+  created_at: string;
+}
+
+export interface QuizAttempt {
+  id: string;
+  quiz_id: string;
+  student_id: string;
+  org_id: string | null;
+  score: number;
+  max_score: number;
+  passed: boolean;
+  answers: number[];
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
