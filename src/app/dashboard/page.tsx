@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import CourseCard from "@/components/CourseCard";
+import CourseGrid from "@/components/CourseGrid";
 import Navbar from "@/components/Navbar";
 import type { Course, Organization, Profile } from "@/lib/types";
 
@@ -15,7 +15,6 @@ export default async function DashboardPage() {
   const profile = profileData as unknown as Profile | null;
   const isFounder = profile?.role === "founder";
 
-  // Check subscription status
   let hasActiveSubscription = false;
   if (profile?.org_id) {
     const { data: orgData } = await supabase
@@ -63,10 +62,7 @@ export default async function DashboardPage() {
               <p className="text-amber-300 font-medium text-sm">You don&apos;t have an active subscription</p>
               <p className="text-amber-400/70 text-xs mt-0.5">Premium courses are locked. Subscribe to unlock the full curriculum.</p>
             </div>
-            <a
-              href="/billing"
-              className="flex-shrink-0 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-lg transition-colors"
-            >
+            <a href="/billing" className="flex-shrink-0 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-lg transition-colors">
               View Plans
             </a>
           </div>
@@ -77,22 +73,15 @@ export default async function DashboardPage() {
             <div className="text-5xl mb-4">📚</div>
             <h2 className="text-xl font-semibold text-white mb-2">No courses yet</h2>
             <p className="text-gray-400">
-              {isFounder
-                ? "Create your first course to get started."
-                : "Check back soon — your founder is building your curriculum."}
+              {isFounder ? "Create your first course to get started." : "Check back soon — your founder is building your curriculum."}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map((course) => (
-              <CourseCard
-                key={course.id}
-                course={course}
-                isFounder={isFounder}
-                hasAccess={isFounder || hasActiveSubscription}
-              />
-            ))}
-          </div>
+          <CourseGrid
+            courses={courses}
+            isFounder={isFounder}
+            hasAccess={isFounder || hasActiveSubscription}
+          />
         )}
       </main>
     </div>

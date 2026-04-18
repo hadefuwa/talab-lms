@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import QuizPlayer from "@/components/QuizPlayer";
+import QuizHistory from "@/components/QuizHistory";
 import type { Profile, Quiz, QuizAttempt, QuizQuestion } from "@/lib/types";
 
 interface Props {
@@ -27,15 +28,18 @@ export default async function QuizPage({ params }: Props) {
   const quiz = quizData as Quiz;
   const questions = (questionsData ?? []) as QuizQuestion[];
 
-  // Best previous attempt
-  const { data: bestAttempt } = await (supabase as any)
+  // All previous attempts (most recent first)
+  const { data: attemptsData } = await (supabase as any)
     .from("quiz_attempts")
     .select("*")
     .eq("quiz_id", quizId)
     .eq("student_id", user.id)
-    .order("score", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order("created_at", { ascending: false });
+
+  const allAttempts = (attemptsData ?? []) as QuizAttempt[];
+  const bestAttempt = allAttempts.reduce<QuizAttempt | null>(
+    (best, a) => (!best || a.score > best.score ? a : best), null
+  );
 
   return (
     <div className="min-h-screen bg-gray-950">
@@ -57,8 +61,11 @@ export default async function QuizPage({ params }: Props) {
         <QuizPlayer
           quiz={quiz}
           questions={questions}
-          previousBest={bestAttempt as QuizAttempt | null}
+          previousBest={bestAttempt}
         />
+        {allAttempts.length > 0 && (
+          <QuizHistory attempts={allAttempts} quiz={quiz} />
+        )}
       </main>
     </div>
   );

@@ -61,6 +61,9 @@ export default async function CoursePage({ params }: Props) {
     progressLogs.map((p) => [p.lesson_id, p.status])
   );
 
+  const completedCount = Object.values(progressMap).filter((s) => s === "completed").length;
+  const allComplete = lessons.length > 0 && completedCount === lessons.length;
+
   return (
     <div className="min-h-screen bg-gray-950">
       <Navbar profile={profile} />
@@ -80,8 +83,16 @@ export default async function CoursePage({ params }: Props) {
           </div>
           <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
             <span>{lessons.length} lessons</span>
-            <span>{Object.values(progressMap).filter((s) => s === "completed").length} completed</span>
+            <span>{completedCount} completed</span>
             <span>{visibleQuizzes.length} quiz{visibleQuizzes.length !== 1 ? "zes" : ""}</span>
+            {allComplete && !isFounder && (
+              <Link
+                href={`/courses/${courseId}/certificate`}
+                className="ml-auto flex items-center gap-1.5 text-yellow-400 hover:text-yellow-300 font-medium transition-colors"
+              >
+                🏆 View Certificate
+              </Link>
+            )}
             {profile?.role === "founder" && (
               <>
                 <Link href={`/admin/courses/${courseId}/lessons/new`} className="text-talab-500 hover:text-talab-400 font-medium">
