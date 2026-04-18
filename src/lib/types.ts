@@ -26,6 +26,8 @@ export interface Course {
   is_free: boolean;
   thumbnail_key: string | null;
   created_at: string;
+  lessonCount?: number;
+  quizCount?: number;
 }
 
 export interface Lesson {

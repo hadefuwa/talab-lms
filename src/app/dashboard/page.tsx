@@ -24,13 +24,25 @@ export default async function DashboardPage() {
   }
 
   let courses: Course[] = [];
-  if (isFounder) {
-    const { data } = await supabase.from("courses").select("*").order("created_at");
-    courses = (data as unknown as Course[]) ?? [];
+  const query = isFounder
+    ? supabase.from("courses").select("*").order("created_at")
+    : supabase.from("courses").select("*").eq("is_published", true).order("created_at");
+  const { data: rawCourses } = await query;
+  const baseCourses = (rawCourses as unknown as Course[]) ?? [];
+
+  if (baseCourses.length > 0) {
+    const ids = baseCourses.map((c) => c.id);
+    const [{ data: lessonCounts }, { data: quizCounts }] = await Promise.all([
+      supabase.from("lessons").select("course_id").in("course_id", ids),
+      (supabase as any).from("quizzes").select("course_id").in("course_id", ids),
+    ]);
+    const lc: Record<string, number> = {};
+    const qc: Record<string, number> = {};
+    (lessonCounts ?? []).forEach((r: { course_id: string }) => { lc[r.course_id] = (lc[r.course_id] ?? 0) + 1; });
+    (quizCounts ?? []).forEach((r: { course_id: string }) => { qc[r.course_id] = (qc[r.course_id] ?? 0) + 1; });
+    courses = baseCourses.map((c) => ({ ...c, lessonCount: lc[c.id] ?? 0, quizCount: qc[c.id] ?? 0 }));
   } else {
-    const { data } = await supabase
-      .from("courses").select("*").eq("is_published", true).order("created_at");
-    courses = (data as unknown as Course[]) ?? [];
+    courses = baseCourses;
   }
 
   return (
