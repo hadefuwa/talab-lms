@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import LessonList from "@/components/LessonList";
+import LessonReorderList from "@/components/LessonReorderList";
 import Link from "next/link";
 import type { Course, Lesson, Organization, Profile, ProgressLog, Quiz } from "@/lib/types";
 
@@ -112,7 +113,11 @@ export default async function CoursePage({ params }: Props) {
           </div>
         )}
 
-        <LessonList lessons={lessons} courseId={courseId} progressMap={progressMap} hasAccess={hasAccess} />
+        {isFounder ? (
+          <LessonReorderList lessons={lessons} courseId={courseId} progressMap={progressMap} />
+        ) : (
+          <LessonList lessons={lessons} courseId={courseId} progressMap={progressMap} hasAccess={hasAccess} />
+        )}
 
         {/* Quizzes section */}
         {visibleQuizzes.length > 0 && (
@@ -120,11 +125,16 @@ export default async function CoursePage({ params }: Props) {
             <h2 className="text-lg font-semibold text-white mb-4">Quizzes</h2>
             <div className="space-y-3">
               {visibleQuizzes.map((quiz) => (
-                <Link
-                  key={quiz.id}
-                  href={`/courses/${courseId}/quiz/${quiz.id}`}
-                  className="group flex items-center gap-4 bg-gray-900 border border-gray-800 rounded-xl px-5 py-4 hover:border-talab-700 transition-all"
-                >
+                <div key={quiz.id} className="group relative flex items-center gap-4 bg-gray-900 border border-gray-800 rounded-xl px-5 py-4 hover:border-talab-700 transition-all">
+                  {profile?.role === "founder" && (
+                    <Link
+                      href={`/admin/courses/${courseId}/quizzes/${quiz.id}/edit`}
+                      className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 text-xs text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 border border-gray-700 px-2 py-0.5 rounded transition-all z-10"
+                    >
+                      Edit
+                    </Link>
+                  )}
+                  <Link href={`/courses/${courseId}/quiz/${quiz.id}`} className="flex items-center gap-4 flex-1 min-w-0">
                   <div className="w-9 h-9 bg-purple-900/30 border border-purple-800 rounded-lg flex items-center justify-center flex-shrink-0">
                     <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -142,7 +152,8 @@ export default async function CoursePage({ params }: Props) {
                   <svg className="w-4 h-4 text-gray-600 group-hover:text-talab-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
-                </Link>
+                  </Link>
+                </div>
               ))}
             </div>
           </div>

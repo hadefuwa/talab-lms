@@ -23,8 +23,10 @@ export default function Navbar({ profile }: Props) {
 
   const navLinks = [
     { href: "/dashboard", label: "Courses" },
+    { href: "/progress", label: "My Progress" },
     ...(profile?.role !== "student" ? [{ href: "/family", label: "Family" }] : []),
     ...(profile?.role !== "student" ? [{ href: "/billing", label: "Billing" }] : []),
+    ...(profile?.role === "founder" ? [{ href: "/admin/analytics", label: "Analytics" }] : []),
   ];
 
   return (
