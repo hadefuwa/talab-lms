@@ -32,25 +32,26 @@ export default function Navbar({ profile }: Props) {
   ];
 
   return (
-    <nav className="border-b border-gray-800 bg-gray-950/80 backdrop-blur-md sticky top-0 z-40">
+    <nav className="border-b border-slate-200 bg-white sticky top-0 z-40 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
 
-          {/* Logo + desktop links */}
           <div className="flex items-center gap-6">
             <Link href="/dashboard" className="flex items-center gap-2 flex-shrink-0">
-              <div className="w-7 h-7 bg-talab-600 rounded-lg flex items-center justify-center text-xs font-bold text-white">T</div>
-              <span className="font-semibold text-white text-sm">Talab LMS</span>
+              <div className="w-8 h-8 bg-talab-600 rounded-xl flex items-center justify-center text-sm font-bold text-white">T</div>
+              <span className="font-bold text-slate-800 text-sm">Talab</span>
             </Link>
             <div className="hidden sm:flex items-center gap-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
-                    pathname === link.href
-                      ? "bg-gray-800 text-white"
-                      : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+                  className={`text-sm px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                    pathname.startsWith(link.href) && link.href !== "/dashboard"
+                      ? "bg-talab-50 text-talab-600"
+                      : pathname === link.href
+                      ? "bg-talab-50 text-talab-600"
+                      : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
                   }`}
                 >
                   {link.label}
@@ -59,36 +60,34 @@ export default function Navbar({ profile }: Props) {
             </div>
           </div>
 
-          {/* Right side */}
           <div className="flex items-center gap-3">
             {profile?.role === "founder" && (
-              <span className="text-xs bg-talab-900/50 text-talab-400 border border-talab-800 px-2 py-0.5 rounded-full hidden sm:inline">
+              <span className="text-xs bg-talab-50 text-talab-600 border border-talab-200 px-2.5 py-0.5 rounded-full font-medium hidden sm:inline">
                 Founder
               </span>
             )}
             {profile && (
               <div className="hidden sm:flex items-center gap-2">
                 {profile.avatar_url ? (
-                  <Image src={profile.avatar_url} alt={profile.full_name} width={28} height={28} className="rounded-full" />
+                  <Image src={profile.avatar_url} alt={profile.full_name} width={30} height={30} className="rounded-full ring-2 ring-slate-200" />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-300">
+                  <div className="w-7 h-7 rounded-full bg-talab-100 flex items-center justify-center text-xs font-semibold text-talab-600">
                     {profile.full_name?.[0]?.toUpperCase() ?? "?"}
                   </div>
                 )}
-                <span className="text-sm text-gray-300">{profile.full_name}</span>
+                <span className="text-sm text-slate-600 font-medium">{profile.full_name}</span>
               </div>
             )}
             <button
               onClick={handleSignOut}
-              className="text-xs text-gray-500 hover:text-gray-300 transition-colors px-2 py-1 hidden sm:block"
+              className="text-xs text-slate-400 hover:text-slate-600 transition-colors px-2 py-1 hidden sm:block"
             >
               Sign out
             </button>
 
-            {/* Mobile hamburger */}
             <button
               onClick={() => setMenuOpen((v) => !v)}
-              className="sm:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+              className="sm:hidden p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
               aria-label="Toggle menu"
             >
               {menuOpen ? (
@@ -105,23 +104,21 @@ export default function Navbar({ profile }: Props) {
         </div>
       </div>
 
-      {/* Mobile menu */}
       {menuOpen && (
-        <div className="sm:hidden border-t border-gray-800 bg-gray-950 px-4 py-3 space-y-1">
-          {/* User info */}
+        <div className="sm:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-1">
           {profile && (
-            <div className="flex items-center gap-3 px-3 py-2 mb-2 border-b border-gray-800 pb-3">
+            <div className="flex items-center gap-3 px-3 py-2 mb-2 border-b border-slate-100 pb-3">
               {profile.avatar_url ? (
                 <Image src={profile.avatar_url} alt={profile.full_name} width={32} height={32} className="rounded-full" />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-300">
+                <div className="w-8 h-8 rounded-full bg-talab-100 flex items-center justify-center text-sm font-semibold text-talab-600">
                   {profile.full_name?.[0]?.toUpperCase() ?? "?"}
                 </div>
               )}
               <div>
-                <p className="text-sm font-medium text-white">{profile.full_name}</p>
+                <p className="text-sm font-semibold text-slate-800">{profile.full_name}</p>
                 {profile.role === "founder" && (
-                  <p className="text-xs text-talab-400">Founder</p>
+                  <p className="text-xs text-talab-500 font-medium">Founder</p>
                 )}
               </div>
             </div>
@@ -132,10 +129,10 @@ export default function Navbar({ profile }: Props) {
               key={link.href}
               href={link.href}
               onClick={() => setMenuOpen(false)}
-              className={`block text-sm px-3 py-2.5 rounded-xl transition-colors ${
+              className={`block text-sm px-3 py-2.5 rounded-xl font-medium transition-colors ${
                 pathname === link.href
-                  ? "bg-gray-800 text-white"
-                  : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+                  ? "bg-talab-50 text-talab-600"
+                  : "text-slate-600 hover:text-slate-800 hover:bg-slate-100"
               }`}
             >
               {link.label}
@@ -144,7 +141,7 @@ export default function Navbar({ profile }: Props) {
 
           <button
             onClick={handleSignOut}
-            className="w-full text-left text-sm px-3 py-2.5 text-red-500 hover:text-red-400 hover:bg-red-900/10 rounded-xl transition-colors mt-1"
+            className="w-full text-left text-sm px-3 py-2.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors mt-1 font-medium"
           >
             Sign out
           </button>

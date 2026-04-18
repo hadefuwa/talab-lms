@@ -1,17 +1,20 @@
 import Link from "next/link";
 import type { Course } from "@/lib/types";
 
-const SUBJECT_COLORS: Record<string, string> = {
-  Math: "bg-blue-900/30 text-blue-400 border-blue-800",
-  Maths: "bg-blue-900/30 text-blue-400 border-blue-800",
-  Science: "bg-green-900/30 text-green-400 border-green-800",
-  English: "bg-purple-900/30 text-purple-400 border-purple-800",
-  History: "bg-amber-900/30 text-amber-400 border-amber-800",
-  Technology: "bg-cyan-900/30 text-cyan-400 border-cyan-800",
-  Arabic: "bg-rose-900/30 text-rose-400 border-rose-800",
-  Quran: "bg-teal-900/30 text-teal-400 border-teal-800",
-  default: "bg-gray-800 text-gray-400 border-gray-700",
+const SUBJECT_STYLES: Record<string, { bg: string; text: string; icon: string }> = {
+  Maths:      { bg: "bg-blue-500",   text: "text-blue-600",   icon: "🔢" },
+  Math:       { bg: "bg-blue-500",   text: "text-blue-600",   icon: "🔢" },
+  English:    { bg: "bg-violet-500", text: "text-violet-600", icon: "📖" },
+  History:    { bg: "bg-amber-500",  text: "text-amber-600",  icon: "🏛️" },
+  Technology: { bg: "bg-teal-500",   text: "text-teal-600",   icon: "💻" },
+  Science:    { bg: "bg-green-500",  text: "text-green-600",  icon: "🔬" },
+  Arabic:     { bg: "bg-rose-500",   text: "text-rose-600",   icon: "📜" },
+  Quran:      { bg: "bg-emerald-500",text: "text-emerald-600",icon: "🌙" },
+  Art:        { bg: "bg-pink-500",   text: "text-pink-600",   icon: "🎨" },
+  PE:         { bg: "bg-orange-500", text: "text-orange-600", icon: "⚽" },
 };
+
+const DEFAULT_STYLE = { bg: "bg-slate-400", text: "text-slate-600", icon: "📚" };
 
 interface Props {
   course: Course;
@@ -20,54 +23,59 @@ interface Props {
 }
 
 export default function CourseCard({ course, isFounder, hasAccess = true }: Props) {
-  const colorClass = SUBJECT_COLORS[course.subject_category] ?? SUBJECT_COLORS.default;
+  const style = SUBJECT_STYLES[course.subject_category] ?? DEFAULT_STYLE;
   const locked = !hasAccess && !course.is_free && !isFounder;
 
   return (
-    <div className={`relative group bg-gray-900 border rounded-2xl p-6 transition-all duration-200 ${
+    <div className={`relative group bg-white border-2 rounded-2xl overflow-hidden transition-all duration-200 shadow-card ${
       locked
-        ? "border-gray-800 opacity-75"
-        : "border-gray-800 hover:border-talab-700 hover:shadow-lg hover:shadow-talab-900/20"
+        ? "border-slate-100 opacity-75"
+        : "border-slate-100 hover:border-slate-200 hover:shadow-card-hover"
     }`}>
+      {/* Coloured top stripe */}
+      <div className={`h-2 w-full ${style.bg} ${locked ? "opacity-40" : ""}`} />
+
       {isFounder && (
         <Link
           href={`/admin/courses/${course.id}/edit`}
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 text-xs text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 border border-gray-700 px-2 py-1 rounded-lg transition-all z-10"
+          className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 text-xs text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2 py-1 rounded-lg transition-all z-10"
         >
           Edit
         </Link>
       )}
 
-      <Link href={locked ? "/billing" : `/courses/${course.id}`} className="block">
+      <Link href={locked ? "/billing" : `/courses/${course.id}`} className="block p-5">
         <div className="flex items-start justify-between mb-4">
-          <span className={`text-xs font-medium px-2 py-1 rounded border ${colorClass}`}>
-            {course.subject_category}
-          </span>
+          <div className={`w-10 h-10 ${style.bg} rounded-xl flex items-center justify-center text-lg ${locked ? "opacity-40" : ""}`}>
+            {style.icon}
+          </div>
           <div className="flex items-center gap-2">
             {!course.is_published && (
-              <span className="text-xs text-yellow-500 bg-yellow-900/20 border border-yellow-800/50 px-2 py-0.5 rounded">
+              <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
                 Draft
               </span>
             )}
             {course.is_free ? (
-              <span className="text-xs text-green-400 bg-green-900/20 border border-green-800/50 px-2 py-0.5 rounded font-medium">
+              <span className="text-xs text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full font-semibold">
                 Free
               </span>
             ) : (
-              <span className="text-xs text-amber-400 bg-amber-900/20 border border-amber-800/50 px-2 py-0.5 rounded font-medium">
+              <span className="text-xs text-violet-600 bg-violet-50 border border-violet-200 px-2 py-0.5 rounded-full font-semibold">
                 Premium
               </span>
             )}
           </div>
         </div>
-        <h3 className={`text-lg font-semibold transition-colors line-clamp-2 ${locked ? "text-gray-500" : "text-white group-hover:text-talab-400"}`}>
+
+        <h3 className={`text-base font-bold leading-snug ${locked ? "text-slate-400" : "text-slate-800 group-hover:text-talab-600"} transition-colors`}>
           {course.title}
         </h3>
         {course.description && (
-          <p className="text-sm text-gray-500 mt-2 line-clamp-2">{course.description}</p>
+          <p className="text-sm text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">{course.description}</p>
         )}
-        <div className="mt-3 flex items-center gap-3 text-xs text-gray-500">
+
+        <div className="mt-3 flex items-center gap-3 text-xs text-slate-400">
           <span className="flex items-center gap-1">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -83,21 +91,22 @@ export default function CourseCard({ course, isFounder, hasAccess = true }: Prop
             </span>
           )}
           {(course.lessonCount ?? 0) === 0 && (
-            <span className="text-gray-600 italic">Coming soon</span>
+            <span className="text-slate-300 italic">Coming soon</span>
           )}
         </div>
-        <div className="mt-3 flex items-center gap-1 text-sm font-medium">
+
+        <div className="mt-4 flex items-center gap-1 text-sm font-semibold">
           {locked ? (
-            <span className="text-amber-500 flex items-center gap-1.5">
+            <span className="text-amber-500 flex items-center gap-1.5 text-xs">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
               Subscribe to unlock
             </span>
           ) : (
-            <span className="text-talab-500 flex items-center gap-1">
-              View course
-              <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <span className={`flex items-center gap-1 text-xs ${style.text}`}>
+              Start learning
+              <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </span>

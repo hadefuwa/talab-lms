@@ -28,7 +28,6 @@ export default async function LessonPage({ params }: Props) {
   const profile = profileData as unknown as Profile | null;
   const lesson = lessonData as unknown as Lesson & { courses: { id: string; title: string; is_free: boolean } };
 
-  // Enforce subscription gate on premium lessons
   if (profile?.role !== "founder" && !lesson.courses.is_free) {
     let hasAccess = false;
     if (profile?.org_id) {
@@ -41,54 +40,39 @@ export default async function LessonPage({ params }: Props) {
   }
 
   const { data: progressData } = await supabase
-    .from("progress_logs")
-    .select("*")
-    .eq("student_id", user.id)
-    .eq("lesson_id", lessonId)
-    .maybeSingle();
-
+    .from("progress_logs").select("*").eq("student_id", user.id).eq("lesson_id", lessonId).maybeSingle();
   const progress = progressData as unknown as ProgressLog | null;
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <Navbar profile={profile} />
       <div className="flex flex-1 overflow-hidden">
-        {/* Main content */}
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
             <div>
               <div className="flex items-center justify-between">
-                <a
-                  href={`/courses/${lesson.course_id}`}
-                  className="text-sm text-talab-500 hover:text-talab-400 inline-flex items-center gap-1"
-                >
+                <a href={`/courses/${lesson.course_id}`} className="text-sm text-talab-600 hover:text-talab-700 font-medium inline-flex items-center gap-1">
                   ← Back to Course
                 </a>
                 {profile?.role === "founder" && (
                   <a
                     href={`/admin/lessons/${lessonId}/edit`}
-                    className="text-xs text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 rounded-lg transition-colors"
+                    className="text-xs text-slate-500 hover:text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg transition-colors font-medium"
                   >
                     Edit Lesson
                   </a>
                 )}
               </div>
-              <h1 className="text-2xl font-bold text-white mt-3">{lesson.title}</h1>
+              <h1 className="text-2xl font-black text-slate-800 mt-3">{lesson.title}</h1>
             </div>
 
             {lesson.lesson_type === "game" && lesson.game_path ? (
-              <GameLesson
-                lesson={lesson}
-                orgId={profile?.org_id ?? ""}
-                existingProgress={progress}
-              />
+              <GameLesson lesson={lesson} orgId={profile?.org_id ?? ""} existingProgress={progress} />
             ) : (
               <>
-                {lesson.r2_key && (
-                  <VideoPlayer lessonId={lessonId} r2Key={lesson.r2_key} />
-                )}
+                {lesson.r2_key && <VideoPlayer lessonId={lessonId} r2Key={lesson.r2_key} />}
                 {lesson.content_body && (
-                  <div className="prose prose-invert max-w-none bg-gray-900 border border-gray-800 rounded-xl p-6">
+                  <div className="prose prose-slate max-w-none bg-white border border-slate-100 rounded-2xl p-8 shadow-card">
                     <div dangerouslySetInnerHTML={{ __html: lesson.content_body }} />
                   </div>
                 )}
@@ -101,12 +85,7 @@ export default async function LessonPage({ params }: Props) {
             )}
           </div>
         </main>
-
-        {/* Gemini Sidebar */}
-        <GeminiSidebar
-          lessonTitle={lesson.title}
-          lessonContext={lesson.content_body ?? ""}
-        />
+        <GeminiSidebar lessonTitle={lesson.title} lessonContext={lesson.content_body ?? ""} />
       </div>
     </div>
   );
