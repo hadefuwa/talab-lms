@@ -29,6 +29,7 @@ export interface Course {
   created_at: string;
   lessonCount?: number;
   quizCount?: number;
+  completedCount?: number;
 }
 
 export interface Lesson {

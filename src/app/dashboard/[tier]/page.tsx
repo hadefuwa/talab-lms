@@ -44,15 +44,35 @@ export default async function TierPage({ params }: Props) {
   let courses: Course[] = baseCourses;
   if (baseCourses.length > 0) {
     const ids = baseCourses.map((c) => c.id);
-    const [{ data: lessonCounts }, { data: quizCounts }] = await Promise.all([
-      supabase.from("lessons").select("course_id").in("course_id", ids),
+    const [{ data: lessonRows }, { data: quizRows }, { data: progressRows }] = await Promise.all([
+      supabase.from("lessons").select("id, course_id").in("course_id", ids),
       (supabase as any).from("quizzes").select("course_id").in("course_id", ids),
+      supabase.from("progress_logs").select("lesson_id, status").eq("student_id", user.id),
     ]);
+
     const lc: Record<string, number> = {};
     const qc: Record<string, number> = {};
-    (lessonCounts ?? []).forEach((r: { course_id: string }) => { lc[r.course_id] = (lc[r.course_id] ?? 0) + 1; });
-    (quizCounts ?? []).forEach((r: { course_id: string }) => { qc[r.course_id] = (qc[r.course_id] ?? 0) + 1; });
-    courses = baseCourses.map((c) => ({ ...c, lessonCount: lc[c.id] ?? 0, quizCount: qc[c.id] ?? 0 }));
+    const lessonToCourse: Record<string, string> = {};
+    const cc: Record<string, number> = {};
+
+    (lessonRows ?? []).forEach((r: { id: string; course_id: string }) => {
+      lc[r.course_id] = (lc[r.course_id] ?? 0) + 1;
+      lessonToCourse[r.id] = r.course_id;
+    });
+    (quizRows ?? []).forEach((r: { course_id: string }) => { qc[r.course_id] = (qc[r.course_id] ?? 0) + 1; });
+    (progressRows ?? []).forEach((r: { lesson_id: string; status: string }) => {
+      if (r.status === "completed") {
+        const cid = lessonToCourse[r.lesson_id];
+        if (cid) cc[cid] = (cc[cid] ?? 0) + 1;
+      }
+    });
+
+    courses = baseCourses.map((c) => ({
+      ...c,
+      lessonCount: lc[c.id] ?? 0,
+      quizCount: qc[c.id] ?? 0,
+      completedCount: cc[c.id] ?? 0,
+    }));
   }
 
   const meta = TIER_META[tier];
