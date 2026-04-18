@@ -24,6 +24,7 @@ export interface Course {
   subject_category: string;
   is_published: boolean;
   is_free: boolean;
+  key_stage: "nursery" | "ks1" | "ks2";
   thumbnail_key: string | null;
   created_at: string;
   lessonCount?: number;
