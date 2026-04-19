@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   title: "Talab LMS",
   description: "Secure curriculum platform for homeschool families",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

@@ -27,7 +27,20 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
     setSpeaking(false);
   }, []);
 
-  const speak = useCallback(() => {
+  function getVoices(): Promise<SpeechSynthesisVoice[]> {
+    return new Promise((resolve) => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length) { resolve(voices); return; }
+      // Android/Chrome loads voices async
+      window.speechSynthesis.onvoiceschanged = () => {
+        resolve(window.speechSynthesis.getVoices());
+      };
+      // Fallback if event never fires
+      setTimeout(() => resolve(window.speechSynthesis.getVoices()), 1000);
+    });
+  }
+
+  const speak = useCallback(async () => {
     if (!supported) return;
     window.speechSynthesis.cancel();
     if (resumeRef.current) { clearInterval(resumeRef.current); resumeRef.current = null; }
@@ -37,8 +50,8 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
     utterance.pitch = 1.05;
     utterance.lang = "en-GB";
 
-    // Pick a good voice if available
-    const voices = window.speechSynthesis.getVoices();
+    // Wait for voices to load (critical on Android)
+    const voices = await getVoices();
     const preferred = voices.find(
       (v) => v.lang.startsWith("en") && (v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Karen") || v.name.includes("Daniel"))
     ) ?? voices.find((v) => v.lang.startsWith("en"));
