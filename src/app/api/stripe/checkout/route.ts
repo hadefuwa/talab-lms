@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { stripe, PLANS } from "@/lib/stripe";
+import { getStripe, PLANS } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   let customerId = org?.stripe_customer_id as string | undefined;
 
   if (!customerId) {
-    const customer = await stripe.customers.create({
+    const customer = await getStripe().customers.create({
       email: user.email,
       name: org?.name ?? profile?.full_name,
       metadata: { org_id: orgId, user_id: user.id },
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
   const origin = request.headers.get("origin") ?? "https://talab.space";
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     customer: customerId,
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
