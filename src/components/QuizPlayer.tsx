@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Quiz, QuizAttempt, QuizQuestion } from "@/lib/types";
+import TTSButton from "@/components/TTSButton";
 
 interface Props {
   quiz: Quiz;
@@ -14,9 +15,7 @@ type Phase = "intro" | "playing" | "result";
 export default function QuizPlayer({ quiz, questions, previousBest }: Props) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [current, setCurrent] = useState(0);
-  const [selected, setSelected] = useState<(number | null)[]>(
-    Array(questions.length).fill(null)
-  );
+  const [selected, setSelected] = useState<(number | null)[]>(Array(questions.length).fill(null));
   const [result, setResult] = useState<QuizAttempt | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,42 +41,50 @@ export default function QuizPlayer({ quiz, questions, previousBest }: Props) {
   const q = questions[current];
   const progress = ((current + 1) / questions.length) * 100;
 
+  // Build TTS text for current question including options
+  const questionTTS = q
+    ? `Question ${current + 1}. ${q.question}. ${q.options.map((o, i) => `${String.fromCharCode(65 + i)}. ${o}`).join(". ")}`
+    : "";
+
   // ── Intro ──────────────────────────────────────────────
   if (phase === "intro") {
     return (
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">{quiz.title}</h1>
-          {quiz.description && <p className="text-gray-400 mt-2">{quiz.description}</p>}
+      <div className="bg-white border border-slate-100 rounded-2xl p-8 shadow-card space-y-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-slate-800">{quiz.title}</h1>
+            {quiz.description && <p className="text-slate-500 mt-2">{quiz.description}</p>}
+          </div>
+          <TTSButton text={`${quiz.title}. ${quiz.description ?? ""} This quiz has ${questions.length} questions. The pass mark is ${quiz.pass_score} percent.`} size="sm" />
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="bg-gray-800 rounded-xl p-4">
-            <p className="text-gray-500">Questions</p>
-            <p className="text-white font-bold text-xl mt-1">{questions.length}</p>
+          <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
+            <p className="text-slate-400 text-xs font-medium uppercase tracking-wide">Questions</p>
+            <p className="text-slate-800 font-black text-2xl mt-1">{questions.length}</p>
           </div>
-          <div className="bg-gray-800 rounded-xl p-4">
-            <p className="text-gray-500">Pass mark</p>
-            <p className="text-white font-bold text-xl mt-1">{quiz.pass_score}%</p>
+          <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
+            <p className="text-slate-400 text-xs font-medium uppercase tracking-wide">Pass mark</p>
+            <p className="text-slate-800 font-black text-2xl mt-1">{quiz.pass_score}%</p>
           </div>
         </div>
         {previousBest && (
-          <div className={`rounded-xl px-4 py-3 border text-sm ${
+          <div className={`rounded-xl px-4 py-3 border text-sm font-medium ${
             previousBest.passed
-              ? "bg-green-900/20 border-green-800 text-green-400"
-              : "bg-gray-800 border-gray-700 text-gray-400"
+              ? "bg-green-50 border-green-200 text-green-700"
+              : "bg-slate-50 border-slate-200 text-slate-600"
           }`}>
             Best attempt: {previousBest.score}/{previousBest.max_score} ({Math.round((previousBest.score / previousBest.max_score) * 100)}%)
             {previousBest.passed ? " — Passed ✓" : " — Not passed yet"}
           </div>
         )}
         {questions.length === 0 ? (
-          <p className="text-yellow-500 text-sm">No questions added yet.</p>
+          <p className="text-amber-600 text-sm">No questions added yet.</p>
         ) : (
           <button
             onClick={() => setPhase("playing")}
-            className="w-full py-3 bg-talab-600 hover:bg-talab-700 text-white font-semibold rounded-xl transition-colors"
+            className="w-full py-4 bg-talab-600 hover:bg-talab-700 text-white font-bold text-lg rounded-2xl transition-colors"
           >
-            {previousBest ? "Retake Quiz" : "Start Quiz"}
+            {previousBest ? "Retake Quiz" : "Start Quiz"} →
           </button>
         )}
       </div>
@@ -87,30 +94,36 @@ export default function QuizPlayer({ quiz, questions, previousBest }: Props) {
   // ── Result ─────────────────────────────────────────────
   if (phase === "result" && result) {
     const pct = Math.round((result.score / result.max_score) * 100);
+    const resultText = result.passed
+      ? `Well done! You passed with ${pct} percent. You got ${result.score} out of ${result.max_score} correct.`
+      : `You got ${result.score} out of ${result.max_score} correct. That is ${pct} percent. Keep practising and try again!`;
+
     return (
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 space-y-6 text-center">
+      <div className="bg-white border border-slate-100 rounded-2xl p-8 shadow-card space-y-6 text-center">
         <div className="text-6xl">{result.passed ? "🎉" : "📚"}</div>
-        <div>
-          <h2 className="text-2xl font-bold text-white">
-            {result.passed ? "You passed!" : "Keep practising"}
-          </h2>
-          <p className="text-gray-400 mt-1">
-            {result.score} out of {result.max_score} correct
-          </p>
+        <div className="flex items-center justify-center gap-3">
+          <div>
+            <h2 className="text-2xl font-black text-slate-800">
+              {result.passed ? "You passed!" : "Keep practising"}
+            </h2>
+            <p className="text-slate-500 mt-1">{result.score} out of {result.max_score} correct</p>
+          </div>
+          <TTSButton text={resultText} size="sm" autoPlay />
         </div>
+
         <div className="relative w-32 h-32 mx-auto">
           <svg className="w-32 h-32 -rotate-90" viewBox="0 0 36 36">
-            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1f2937" strokeWidth="3" />
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f1f5f9" strokeWidth="3" />
             <circle
               cx="18" cy="18" r="15.9" fill="none"
-              stroke={result.passed ? "#22c55e" : "#0ea5e9"}
+              stroke={result.passed ? "#22c55e" : "#3b82f6"}
               strokeWidth="3"
               strokeDasharray={`${pct} ${100 - pct}`}
               strokeLinecap="round"
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-2xl font-bold text-white">{pct}%</span>
+            <span className="text-2xl font-black text-slate-800">{pct}%</span>
           </div>
         </div>
 
@@ -120,16 +133,19 @@ export default function QuizPlayer({ quiz, questions, previousBest }: Props) {
             const userAnswer = (result.answers as number[])[idx];
             const correct = userAnswer === q.correct_index;
             return (
-              <div key={q.id} className={`rounded-xl p-4 border text-sm ${correct ? "bg-green-900/10 border-green-900" : "bg-red-900/10 border-red-900"}`}>
-                <p className="text-white font-medium mb-2">{idx + 1}. {q.question}</p>
-                <p className={correct ? "text-green-400" : "text-red-400"}>
+              <div key={q.id} className={`rounded-xl p-4 border text-sm ${correct ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-slate-800 font-semibold">{idx + 1}. {q.question}</p>
+                  <TTSButton text={`${q.question}. ${correct ? "Correct!" : `You answered ${q.options[userAnswer] ?? "nothing"}. The correct answer is ${q.options[q.correct_index]}.`} ${q.explanation ?? ""}`} size="sm" />
+                </div>
+                <p className={`mt-2 font-medium ${correct ? "text-green-700" : "text-red-600"}`}>
                   {correct ? "✓" : "✗"} {q.options[userAnswer] ?? "No answer"}
                 </p>
                 {!correct && (
-                  <p className="text-gray-400 mt-1">Correct: {q.options[q.correct_index]}</p>
+                  <p className="text-slate-500 mt-1">Correct: <span className="font-medium text-green-700">{q.options[q.correct_index]}</span></p>
                 )}
                 {q.explanation && (
-                  <p className="text-gray-500 mt-1 italic">{q.explanation}</p>
+                  <p className="text-slate-400 mt-1 italic text-xs">{q.explanation}</p>
                 )}
               </div>
             );
@@ -137,13 +153,8 @@ export default function QuizPlayer({ quiz, questions, previousBest }: Props) {
         </div>
 
         <button
-          onClick={() => {
-            setPhase("intro");
-            setCurrent(0);
-            setSelected(Array(questions.length).fill(null));
-            setResult(null);
-          }}
-          className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-xl transition-colors"
+          onClick={() => { setPhase("intro"); setCurrent(0); setSelected(Array(questions.length).fill(null)); setResult(null); }}
+          className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-2xl transition-colors"
         >
           Back to Quiz
         </button>
@@ -153,37 +164,44 @@ export default function QuizPlayer({ quiz, questions, previousBest }: Props) {
 
   // ── Playing ────────────────────────────────────────────
   return (
-    <div className="space-y-6">
-      {/* Progress bar */}
+    <div className="space-y-5">
+      {/* Progress */}
       <div>
-        <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+        <div className="flex justify-between text-xs text-slate-400 mb-1.5 font-medium">
           <span>Question {current + 1} of {questions.length}</span>
           <span>{Math.round(progress)}%</span>
         </div>
-        <div className="w-full bg-gray-800 rounded-full h-1.5">
-          <div
-            className="bg-talab-500 h-1.5 rounded-full transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
+        <div className="w-full bg-slate-100 rounded-full h-2">
+          <div className="bg-talab-500 h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
       </div>
 
       {/* Question card */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-5">
-        <h2 className="text-lg font-semibold text-white leading-relaxed">{q.question}</h2>
+      <div className="bg-white border-2 border-slate-100 rounded-2xl p-6 shadow-card space-y-5">
+        {/* Question + TTS */}
+        <div className="flex items-start gap-3">
+          <div className="flex-1">
+            <h2 className="text-xl font-bold text-slate-800 leading-relaxed">{q.question}</h2>
+          </div>
+          <TTSButton text={questionTTS} size="lg" label="Read question" autoPlay key={current} />
+        </div>
+
+        {/* Options */}
         <div className="space-y-3">
           {q.options.map((opt, idx) => (
             <button
               key={idx}
               onClick={() => pickAnswer(idx)}
-              className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-all ${
+              className={`w-full text-left px-4 py-4 rounded-2xl border-2 text-sm font-medium transition-all ${
                 selected[current] === idx
-                  ? "bg-talab-600/20 border-talab-500 text-white"
-                  : "bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-600 hover:bg-gray-700"
+                  ? "bg-talab-50 border-talab-400 text-talab-800"
+                  : "bg-slate-50 border-slate-100 text-slate-700 hover:border-talab-200 hover:bg-talab-50/50"
               }`}
             >
-              <span className="font-medium text-gray-500 mr-2">
-                {String.fromCharCode(65 + idx)}.
+              <span className={`inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold mr-3 ${
+                selected[current] === idx ? "bg-talab-500 text-white" : "bg-slate-200 text-slate-500"
+              }`}>
+                {String.fromCharCode(65 + idx)}
               </span>
               {opt}
             </button>
@@ -196,7 +214,7 @@ export default function QuizPlayer({ quiz, questions, previousBest }: Props) {
         <button
           onClick={() => setCurrent((c) => c - 1)}
           disabled={current === 0}
-          className="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-30 text-white rounded-xl transition-colors"
+          className="px-5 py-3 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-700 font-semibold rounded-2xl transition-colors"
         >
           ← Back
         </button>
@@ -204,7 +222,7 @@ export default function QuizPlayer({ quiz, questions, previousBest }: Props) {
           <button
             onClick={() => setCurrent((c) => c + 1)}
             disabled={selected[current] === null}
-            className="flex-1 py-2.5 bg-talab-600 hover:bg-talab-700 disabled:bg-gray-700 text-white font-medium rounded-xl transition-colors"
+            className="flex-1 py-3 bg-talab-600 hover:bg-talab-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-2xl transition-colors"
           >
             Next →
           </button>
@@ -212,16 +230,14 @@ export default function QuizPlayer({ quiz, questions, previousBest }: Props) {
           <button
             onClick={submitQuiz}
             disabled={selected.some((s) => s === null) || submitting}
-            className="flex-1 py-2.5 bg-green-700 hover:bg-green-600 disabled:bg-gray-700 text-white font-semibold rounded-xl transition-colors"
+            className="flex-1 py-3 bg-green-600 hover:bg-green-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-2xl transition-colors"
           >
-            {submitting ? "Submitting..." : "Submit Quiz"}
+            {submitting ? "Submitting..." : "Submit Quiz ✓"}
           </button>
         )}
       </div>
       {selected.some((s) => s === null) && current === questions.length - 1 && (
-        <p className="text-xs text-yellow-500 text-center">
-          Answer all questions before submitting.
-        </p>
+        <p className="text-xs text-amber-600 text-center font-medium">Answer all questions before submitting.</p>
       )}
     </div>
   );

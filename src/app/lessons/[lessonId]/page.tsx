@@ -5,6 +5,7 @@ import VideoPlayer from "@/components/VideoPlayer";
 import GeminiSidebar from "@/components/GeminiSidebar";
 import ProgressButton from "@/components/ProgressButton";
 import GameLesson from "@/components/GameLesson";
+import TTSButton from "@/components/TTSButton";
 import type { Course, Lesson, Organization, Profile, ProgressLog } from "@/lib/types";
 
 interface Props {
@@ -72,8 +73,14 @@ export default async function LessonPage({ params }: Props) {
               <>
                 {lesson.r2_key && <VideoPlayer lessonId={lessonId} r2Key={lesson.r2_key} />}
                 {lesson.content_body && (
-                  <div className="prose prose-slate max-w-none bg-white border border-slate-100 rounded-2xl p-8 shadow-card">
-                    <div dangerouslySetInnerHTML={{ __html: lesson.content_body }} />
+                  <div className="bg-white border border-slate-100 rounded-2xl p-8 shadow-card space-y-4">
+                    <TTSButton
+                      text={lesson.content_body.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()}
+                      size="lg"
+                    />
+                    <div className="prose prose-slate max-w-none">
+                      <div dangerouslySetInnerHTML={{ __html: lesson.content_body }} />
+                    </div>
                   </div>
                 )}
                 <ProgressButton

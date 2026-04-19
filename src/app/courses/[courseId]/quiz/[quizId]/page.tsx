@@ -42,17 +42,17 @@ export default async function QuizPage({ params }: Props) {
   );
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-slate-50">
       <Navbar profile={profile} />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
         <div className="flex items-center justify-between mb-6">
-          <a href={`/courses/${courseId}`} className="text-sm text-talab-500 hover:text-talab-400 inline-flex items-center gap-1">
+          <a href={`/courses/${courseId}`} className="text-sm text-talab-600 hover:text-talab-700 font-medium inline-flex items-center gap-1">
             ← Back to Course
           </a>
           {profile?.role === "founder" && (
             <a
               href={`/admin/courses/${courseId}/quizzes/${quizId}/edit`}
-              className="text-xs text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 rounded-lg transition-colors"
+              className="text-xs text-slate-500 hover:text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg transition-colors font-medium"
             >
               Edit Quiz
             </a>
