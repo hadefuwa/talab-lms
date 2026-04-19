@@ -108,7 +108,7 @@ export default function QuizPlayer({ quiz, questions, previousBest }: Props) {
             </h2>
             <p className="text-slate-500 mt-1">{result.score} out of {result.max_score} correct</p>
           </div>
-          <TTSButton text={resultText} size="sm" autoPlay />
+          <TTSButton text={resultText} size="sm" />
         </div>
 
         <div className="relative w-32 h-32 mx-auto">
@@ -183,7 +183,7 @@ export default function QuizPlayer({ quiz, questions, previousBest }: Props) {
           <div className="flex-1">
             <h2 className="text-xl font-bold text-slate-800 leading-relaxed">{q.question}</h2>
           </div>
-          <TTSButton text={questionTTS} size="lg" label="Read question" autoPlay key={current} />
+          <TTSButton text={questionTTS} size="lg" label="Read question" key={current} />
         </div>
 
         {/* Options */}

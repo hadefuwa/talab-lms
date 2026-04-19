@@ -1,55 +1,61 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 interface Props {
   text: string;
-  autoPlay?: boolean;
   size?: "sm" | "lg";
   label?: string;
 }
 
-export default function TTSButton({ text, autoPlay = false, size = "sm", label }: Props) {
+export default function TTSButton({ text, size = "sm", label }: Props) {
   const [speaking, setSpeaking] = useState(false);
   const [supported, setSupported] = useState(false);
+  const resumeRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     setSupported(typeof window !== "undefined" && "speechSynthesis" in window);
+    return () => {
+      window.speechSynthesis?.cancel();
+      if (resumeRef.current) clearInterval(resumeRef.current);
+    };
+  }, []);
+
+  const stop = useCallback(() => {
+    window.speechSynthesis.cancel();
+    if (resumeRef.current) { clearInterval(resumeRef.current); resumeRef.current = null; }
+    setSpeaking(false);
   }, []);
 
   const speak = useCallback(() => {
     if (!supported) return;
     window.speechSynthesis.cancel();
+    if (resumeRef.current) { clearInterval(resumeRef.current); resumeRef.current = null; }
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.85;
     utterance.pitch = 1.05;
     utterance.lang = "en-GB";
-    utterance.onstart = () => setSpeaking(true);
-    utterance.onend = () => setSpeaking(false);
-    utterance.onerror = () => setSpeaking(false);
-    window.speechSynthesis.speak(utterance);
-  }, [text, supported]);
 
-  const stop = useCallback(() => {
-    window.speechSynthesis.cancel();
-    setSpeaking(false);
-  }, []);
+    // Pick a good voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(
+      (v) => v.lang.startsWith("en") && (v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Karen") || v.name.includes("Daniel"))
+    ) ?? voices.find((v) => v.lang.startsWith("en"));
+    if (preferred) utterance.voice = preferred;
 
-  // Auto-play when text changes (e.g. new quiz question)
-  useEffect(() => {
-    if (!autoPlay || !supported) return;
-    const t = setTimeout(speak, 400);
-    return () => {
-      clearTimeout(t);
-      window.speechSynthesis.cancel();
-      setSpeaking(false);
+    utterance.onstart = () => {
+      setSpeaking(true);
+      // iOS pauses synthesis after ~15s — keep it alive
+      resumeRef.current = setInterval(() => {
+        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+      }, 5000);
     };
-  }, [text, autoPlay, supported, speak]);
+    utterance.onend = () => { stop(); };
+    utterance.onerror = () => { stop(); };
 
-  // Stop on unmount
-  useEffect(() => {
-    return () => { window.speechSynthesis?.cancel(); };
-  }, []);
+    window.speechSynthesis.speak(utterance);
+  }, [text, supported, stop]);
 
   if (!supported) return null;
 
@@ -57,15 +63,15 @@ export default function TTSButton({ text, autoPlay = false, size = "sm", label }
     return (
       <button
         onClick={speaking ? stop : speak}
-        className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm transition-all ${
+        className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-semibold text-sm transition-all select-none ${
           speaking
-            ? "bg-red-50 border-2 border-red-200 text-red-600 hover:bg-red-100"
-            : "bg-talab-50 border-2 border-talab-200 text-talab-600 hover:bg-talab-100"
+            ? "bg-red-50 border-2 border-red-200 text-red-600 active:bg-red-100"
+            : "bg-talab-50 border-2 border-talab-200 text-talab-600 active:bg-talab-100 hover:bg-talab-100"
         }`}
       >
         {speaking ? (
           <>
-            <span className="relative flex h-3 w-3">
+            <span className="relative flex h-3 w-3 flex-shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
             </span>
@@ -73,9 +79,10 @@ export default function TTSButton({ text, autoPlay = false, size = "sm", label }
           </>
         ) : (
           <>
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a7 7 0 010 12M9.5 9.5a3 3 0 000 5" />
+            <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8v8a1 1 0 001 1h1l4 3V4L7 7H6a1 1 0 00-1 1z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728" />
             </svg>
             {label ?? "Read to me"}
           </>
@@ -88,21 +95,21 @@ export default function TTSButton({ text, autoPlay = false, size = "sm", label }
     <button
       onClick={speaking ? stop : speak}
       title={speaking ? "Stop" : "Read aloud"}
-      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
+      className={`w-9 h-9 rounded-full flex items-center justify-center transition-all flex-shrink-0 select-none ${
         speaking
-          ? "bg-red-100 text-red-500 hover:bg-red-200"
-          : "bg-slate-100 text-slate-400 hover:bg-talab-100 hover:text-talab-600"
+          ? "bg-red-100 text-red-500 active:bg-red-200"
+          : "bg-slate-100 text-slate-400 hover:bg-talab-100 hover:text-talab-600 active:bg-talab-100"
       }`}
     >
       {speaking ? (
-        <span className="relative flex h-2.5 w-2.5">
+        <span className="relative flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
         </span>
       ) : (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a7 7 0 010 12M9.5 9.5a3 3 0 000 5" />
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8v8a1 1 0 001 1h1l4 3V4L7 7H6a1 1 0 00-1 1z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072" />
         </svg>
       )}
     </button>
