@@ -11,12 +11,23 @@ interface Props {
 export default function TTSButton({ text, size = "sm", label }: Props) {
   const [speaking, setSpeaking] = useState(false);
   const [supported, setSupported] = useState(false);
+  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
   const resumeRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Pre-load voices on mount — never inside the click handler (breaks mobile gesture chain)
   useEffect(() => {
-    setSupported(typeof window !== "undefined" && "speechSynthesis" in window);
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    setSupported(true);
+
+    function loadVoices() {
+      voicesRef.current = window.speechSynthesis.getVoices();
+    }
+    loadVoices();
+    window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+
     return () => {
-      window.speechSynthesis?.cancel();
+      window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
+      window.speechSynthesis.cancel();
       if (resumeRef.current) clearInterval(resumeRef.current);
     };
   }, []);
@@ -27,20 +38,8 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
     setSpeaking(false);
   }, []);
 
-  function getVoices(): Promise<SpeechSynthesisVoice[]> {
-    return new Promise((resolve) => {
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length) { resolve(voices); return; }
-      // Android/Chrome loads voices async
-      window.speechSynthesis.onvoiceschanged = () => {
-        resolve(window.speechSynthesis.getVoices());
-      };
-      // Fallback if event never fires
-      setTimeout(() => resolve(window.speechSynthesis.getVoices()), 1000);
-    });
-  }
-
-  const speak = useCallback(async () => {
+  // Synchronous — no await, so the user gesture chain is never broken on mobile
+  const speak = useCallback(() => {
     if (!supported) return;
     window.speechSynthesis.cancel();
     if (resumeRef.current) { clearInterval(resumeRef.current); resumeRef.current = null; }
@@ -50,22 +49,22 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
     utterance.pitch = 1.05;
     utterance.lang = "en-GB";
 
-    // Wait for voices to load (critical on Android)
-    const voices = await getVoices();
-    const preferred = voices.find(
-      (v) => v.lang.startsWith("en") && (v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Karen") || v.name.includes("Daniel"))
-    ) ?? voices.find((v) => v.lang.startsWith("en"));
+    const voices = voicesRef.current;
+    const preferred =
+      voices.find((v) => v.lang.startsWith("en") && v.name.includes("Google")) ??
+      voices.find((v) => v.lang.startsWith("en") && v.name.includes("Samantha")) ??
+      voices.find((v) => v.lang.startsWith("en") && v.name.includes("Karen")) ??
+      voices.find((v) => v.lang.startsWith("en"));
     if (preferred) utterance.voice = preferred;
 
     utterance.onstart = () => {
       setSpeaking(true);
-      // iOS pauses synthesis after ~15s — keep it alive
       resumeRef.current = setInterval(() => {
         if (window.speechSynthesis.paused) window.speechSynthesis.resume();
       }, 5000);
     };
-    utterance.onend = () => { stop(); };
-    utterance.onerror = () => { stop(); };
+    utterance.onend = () => stop();
+    utterance.onerror = () => stop();
 
     window.speechSynthesis.speak(utterance);
   }, [text, supported, stop]);
@@ -75,11 +74,11 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
   if (size === "lg") {
     return (
       <button
-        onClick={speaking ? stop : speak}
-        className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-semibold text-sm transition-all select-none ${
+        onPointerDown={speaking ? stop : speak}
+        className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-semibold text-sm transition-all select-none touch-manipulation ${
           speaking
-            ? "bg-red-50 border-2 border-red-200 text-red-600 active:bg-red-100"
-            : "bg-talab-50 border-2 border-talab-200 text-talab-600 active:bg-talab-100 hover:bg-talab-100"
+            ? "bg-red-50 border-2 border-red-200 text-red-600"
+            : "bg-talab-50 border-2 border-talab-200 text-talab-600 active:bg-talab-100"
         }`}
       >
         {speaking ? (
@@ -106,12 +105,12 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
 
   return (
     <button
-      onClick={speaking ? stop : speak}
+      onPointerDown={speaking ? stop : speak}
       title={speaking ? "Stop" : "Read aloud"}
-      className={`w-9 h-9 rounded-full flex items-center justify-center transition-all flex-shrink-0 select-none ${
+      className={`w-9 h-9 rounded-full flex items-center justify-center transition-all flex-shrink-0 select-none touch-manipulation ${
         speaking
-          ? "bg-red-100 text-red-500 active:bg-red-200"
-          : "bg-slate-100 text-slate-400 hover:bg-talab-100 hover:text-talab-600 active:bg-talab-100"
+          ? "bg-red-100 text-red-500"
+          : "bg-slate-100 text-slate-400 hover:bg-talab-100 hover:text-talab-600 active:bg-talab-100 active:text-talab-600"
       }`}
     >
       {speaking ? (
