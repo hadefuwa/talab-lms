@@ -8,11 +8,43 @@ interface Props {
   label?: string;
 }
 
+function splitTextForSpeech(text: string) {
+  const maxLength = 180;
+  const sentences = text
+    .replace(/\s+/g, " ")
+    .match(/[^.!?]+[.!?]+|[^.!?]+$/g) ?? [text];
+  const chunks: string[] = [];
+
+  for (const sentence of sentences) {
+    const trimmed = sentence.trim();
+    if (!trimmed) continue;
+
+    if (trimmed.length <= maxLength) {
+      chunks.push(trimmed);
+      continue;
+    }
+
+    let current = "";
+    for (const word of trimmed.split(" ")) {
+      const next = current ? `${current} ${word}` : word;
+      if (next.length > maxLength && current) {
+        chunks.push(current);
+        current = word;
+      } else {
+        current = next;
+      }
+    }
+    if (current) chunks.push(current);
+  }
+
+  return chunks;
+}
+
 export default function TTSButton({ text, size = "sm", label }: Props) {
   const [speaking, setSpeaking] = useState(false);
   const [supported, setSupported] = useState(false);
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const utterancesRef = useRef<SpeechSynthesisUtterance[]>([]);
   const resumeRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -29,7 +61,7 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
     return () => {
       window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
       window.speechSynthesis.cancel();
-      utteranceRef.current = null;
+      utterancesRef.current = [];
       if (resumeRef.current) {
         clearInterval(resumeRef.current);
         resumeRef.current = null;
@@ -47,7 +79,7 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
-    utteranceRef.current = null;
+    utterancesRef.current = [];
     clearResumeTimer();
     setSpeaking(false);
   }, [clearResumeTimer]);
@@ -66,44 +98,61 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
     clearResumeTimer();
 
     const synth = window.speechSynthesis;
+    const isAndroid = /Android/i.test(window.navigator.userAgent);
+    const defaultLang = isAndroid && window.navigator.language.startsWith("en")
+      ? window.navigator.language
+      : "en-US";
 
     // Keep speak() in the trusted click handler. Android Chrome may ignore
     // speech started from a timer after cancel(), because user activation is gone.
     if (synth.speaking || synth.pending) synth.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(content);
-    utterance.rate = 0.85;
-    utterance.pitch = 1.05;
-    utterance.lang = "en-GB";
-
     if (voicesRef.current.length === 0) {
       voicesRef.current = synth.getVoices();
     }
 
-    const preferred =
-      voicesRef.current.find((v) => v.lang.startsWith("en") && v.name.toLowerCase().includes("google")) ??
-      voicesRef.current.find((v) => v.lang === "en-GB") ??
-      voicesRef.current.find((v) => v.lang.startsWith("en-US")) ??
-      voicesRef.current.find((v) => v.lang.startsWith("en"));
+    const preferred = isAndroid
+      ? null
+      : voicesRef.current.find((v) => v.lang.startsWith("en") && v.name.toLowerCase().includes("google")) ??
+        voicesRef.current.find((v) => v.lang === "en-GB") ??
+        voicesRef.current.find((v) => v.lang.startsWith("en-US")) ??
+        voicesRef.current.find((v) => v.lang.startsWith("en"));
 
-    if (preferred) {
-      utterance.voice = preferred;
-      utterance.lang = preferred.lang;
-    }
+    const chunks = splitTextForSpeech(content);
+    let completed = 0;
 
     const finish = () => {
-      utteranceRef.current = null;
+      utterancesRef.current = [];
       clearResumeTimer();
       setSpeaking(false);
     };
 
-    utterance.onend = finish;
-    utterance.onerror = (e) => {
-      if (e.error !== "interrupted") finish();
-    };
+    const utterances = chunks.map((chunk) => {
+      const utterance = new SpeechSynthesisUtterance(chunk);
+      utterance.rate = 0.85;
+      utterance.pitch = 1.05;
+      utterance.lang = preferred?.lang ?? defaultLang;
 
-    utteranceRef.current = utterance;
-    synth.speak(utterance);
+      if (preferred) {
+        utterance.voice = preferred;
+      }
+
+      utterance.onend = () => {
+        completed += 1;
+        if (completed >= chunks.length) finish();
+      };
+      utterance.onerror = (e) => {
+        if (e.error === "interrupted" || e.error === "canceled") return;
+        finish();
+      };
+
+      return utterance;
+    });
+
+    utterancesRef.current = utterances;
+    for (const utterance of utterances) {
+      synth.speak(utterance);
+    }
 
     // Android Chrome is not reliable about firing onstart.
     setSpeaking(true);
