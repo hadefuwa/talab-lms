@@ -38,16 +38,7 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
     setSpeaking(false);
   }, []);
 
-  // Synchronous — no await, so the user gesture chain is never broken on mobile
-  const speak = useCallback(() => {
-    if (!supported) return;
-    // Only cancel if already speaking — calling cancel() then speak() in the same tick
-    // silently drops the request on Android Chrome
-    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-      window.speechSynthesis.cancel();
-    }
-    if (resumeRef.current) { clearInterval(resumeRef.current); resumeRef.current = null; }
-
+  const doSpeak = useCallback(() => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.85;
     utterance.pitch = 1.05;
@@ -58,23 +49,37 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
       voices.find((v) => v.lang === "en-GB") ??
       voices.find((v) => v.lang.startsWith("en-US")) ??
       voices.find((v) => v.lang.startsWith("en"));
-    // Only set voice+lang when we have a match — don't force en-GB if device lacks it
     if (preferred) {
       utterance.voice = preferred;
       utterance.lang = preferred.lang;
     }
 
-    utterance.onstart = () => {
-      setSpeaking(true);
-      resumeRef.current = setInterval(() => {
-        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-      }, 5000);
-    };
     utterance.onend = () => stop();
-    utterance.onerror = () => stop();
+    // 'interrupted' fires when cancel() is called — not a real error, ignore it
+    utterance.onerror = (e) => { if (e.error !== "interrupted") stop(); };
 
     window.speechSynthesis.speak(utterance);
-  }, [text, supported, stop]);
+
+    // Set speaking state immediately — onstart may never fire on Android Chrome
+    setSpeaking(true);
+    resumeRef.current = setInterval(() => {
+      if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+    }, 5000);
+  }, [text, stop]);
+
+  // Synchronous — no await, so the user gesture chain is never broken on mobile
+  const speak = useCallback(() => {
+    if (!supported) return;
+    if (resumeRef.current) { clearInterval(resumeRef.current); resumeRef.current = null; }
+
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+      // Android Chrome silently drops speak() called in the same tick as cancel()
+      window.speechSynthesis.cancel();
+      setTimeout(doSpeak, 50);
+    } else {
+      doSpeak();
+    }
+  }, [supported, doSpeak]);
 
   if (!supported) return null;
 
