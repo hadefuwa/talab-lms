@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface Props {
   text: string;
@@ -10,11 +10,16 @@ interface Props {
 
 type Status = "idle" | "loading" | "playing" | "error";
 
-const SILENT_WAV =
-  "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQQAAAAAAA==";
+type KokoroModule = typeof import("kokoro-js");
+type KokoroModel = Awaited<ReturnType<KokoroModule["KokoroTTS"]["from_pretrained"]>>;
+
+const MODEL_ID = "onnx-community/Kokoro-82M-v1.0-ONNX";
+const VOICE = "bf_emma";
+
+let kokoroPromise: Promise<KokoroModel> | null = null;
 
 function splitTextForAudio(text: string) {
-  const maxLength = 900;
+  const maxLength = 260;
   const normalized = text.replace(/\s+/g, " ").trim();
   const sentences = normalized.match(/[^.!?]+[.!?]+|[^.!?]+$/g) ?? [normalized];
   const chunks: string[] = [];
@@ -38,16 +43,31 @@ function splitTextForAudio(text: string) {
         current = next;
       }
     }
+
     if (current) chunks.push(current);
   }
 
   return chunks;
 }
 
+async function getKokoroModel() {
+  if (!kokoroPromise) {
+    kokoroPromise = (async () => {
+      const { KokoroTTS } = await import("kokoro-js");
+
+      return KokoroTTS.from_pretrained(MODEL_ID, {
+        dtype: "q8",
+        device: "wasm",
+      });
+    })();
+  }
+
+  return kokoroPromise;
+}
+
 export default function TTSButton({ text, size = "sm", label }: Props) {
   const [status, setStatus] = useState<Status>("idle");
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
   const objectUrlsRef = useRef<string[]>([]);
   const runIdRef = useRef(0);
 
@@ -60,8 +80,6 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
 
   const stop = useCallback(() => {
     runIdRef.current += 1;
-    abortRef.current?.abort();
-    abortRef.current = null;
 
     if (audioRef.current) {
       audioRef.current.pause();
@@ -76,8 +94,6 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
   useEffect(() => {
     return () => {
       runIdRef.current += 1;
-      abortRef.current?.abort();
-      abortRef.current = null;
 
       if (audioRef.current) {
         audioRef.current.pause();
@@ -98,10 +114,13 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
     const url = URL.createObjectURL(blob);
     objectUrlsRef.current.push(url);
     audio.src = url;
-    audio.muted = false;
     audio.currentTime = 0;
-
     await audio.play();
+
+    await new Promise<void>((resolve, reject) => {
+      audio.onended = () => resolve();
+      audio.onerror = () => reject(new Error("Audio playback failed"));
+    });
   }, []);
 
   const play = useCallback(async () => {
@@ -112,44 +131,25 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
     const runId = runIdRef.current + 1;
     runIdRef.current = runId;
 
-    const audio = new Audio(SILENT_WAV);
+    const audio = new Audio();
     audio.preload = "auto";
     audioRef.current = audio;
-
-    // Start an audio element during the user gesture so Android allows later playback.
-    audio.muted = true;
-    void audio.play().catch(() => undefined);
-
-    const abort = new AbortController();
-    abortRef.current = abort;
     setStatus("loading");
 
     try {
-      for (const chunk of chunks) {
-        if (runId !== runIdRef.current) return;
+      const model = await getKokoroModel();
+      if (runId !== runIdRef.current) return;
 
-        const response = await fetch("/api/tts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: chunk }),
-          signal: abort.signal,
+      for (const chunk of chunks) {
+        const output = await model.generate(chunk, {
+          voice: VOICE,
+          speed: 1,
         });
 
-        if (!response.ok) {
-          const error = await response.json().catch(() => ({ error: "TTS request failed" }));
-          throw new Error(error.error ?? "TTS request failed");
-        }
-
-        const blob = await response.blob();
         if (runId !== runIdRef.current) return;
 
         setStatus("playing");
-        await playAudioBlob(blob, runId);
-
-        await new Promise<void>((resolve, reject) => {
-          audio.onended = () => resolve();
-          audio.onerror = () => reject(new Error("Audio playback failed"));
-        });
+        await playAudioBlob(output.toBlob(), runId);
       }
 
       if (runId === runIdRef.current) {
@@ -157,19 +157,15 @@ export default function TTSButton({ text, size = "sm", label }: Props) {
         setStatus("idle");
       }
     } catch (error) {
-      if (abort.signal.aborted || runId !== runIdRef.current) return;
+      if (runId !== runIdRef.current) return;
       console.error(error);
       clearObjectUrls();
       setStatus("error");
-    } finally {
-      if (runId === runIdRef.current) {
-        abortRef.current = null;
-      }
     }
   }, [clearObjectUrls, playAudioBlob, stop, text]);
 
   const active = status === "loading" || status === "playing";
-  const buttonLabel = status === "loading" ? "Preparing audio..." : active ? "Stop reading" : label ?? "Read to me";
+  const buttonLabel = status === "loading" ? "Loading voice..." : active ? "Stop reading" : label ?? "Read to me";
 
   if (size === "lg") {
     return (
