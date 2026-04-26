@@ -30,6 +30,8 @@ let state = {
   currentAttempts: 0
 };
 
+let speechTimers = [];
+
 // Initialize
 function init() {
   render();
@@ -114,7 +116,7 @@ function render() {
             ${wordObj.word.split('').map(l => `<span class="counter">${l}</span>`).join('')}
         </div>
         <div class="cta-row" style="justify-content: center;">
-            <button class="secondary" onclick="speak('${wordObj.word}')">🔊 Listen</button>
+            <button class="secondary" onclick="clearQueuedSpeech(); speak('${wordObj.word}')">🔊 Listen</button>
             <button onclick="nextTeach()">Got it!</button>
         </div>
       </div>
@@ -126,7 +128,7 @@ function render() {
         <div class="badge" style="margin-bottom: 20px;">Word ${state.currentIndex + 1} / ${lessonData.challengeWords.length}</div>
         <h2 class="task-title">Spell the word!</h2>
         <div class="cta-row" style="justify-content: center; margin-bottom: 20px;">
-           <button class="secondary" id="listen-btn" onclick="speak('${currentWord}')">🔊 Listen</button>
+           <button class="secondary" id="listen-btn" onclick="clearQueuedSpeech(); speak('${currentWord}')">🔊 Listen</button>
         </div>
 
         <input type="text" id="game-input" class="equation" placeholder="Type here..." autocomplete="off">
@@ -176,6 +178,8 @@ function render() {
       });
     }
   }
+
+  queueRepeatSpeechForCurrentScreen();
 }
 
 // Logic Functions
@@ -202,11 +206,11 @@ function startGame() {
   state.hearts = 3;
   state.streak = 0;
   state.currentAttempts = 0;
-  speak("Time to play! Type the words you hear.");
   render();
 }
 
 function checkAnswer() {
+  clearQueuedSpeech();
   const input = document.getElementById("game-input");
   const feedback = document.getElementById("feedback-area");
 
@@ -268,7 +272,6 @@ function nextWord() {
   if (state.currentIndex < lessonData.challengeWords.length - 1) {
     state.currentIndex++;
     render();
-    setTimeout(() => speak(lessonData.challengeWords[state.currentIndex]), 500);
   } else {
     state.phase = "victory";
     playSound("win");
@@ -294,6 +297,28 @@ function updateStats() {
 }
 
 // Utils
+function queueRepeatSpeechForCurrentScreen() {
+  clearQueuedSpeech();
+
+  let text = "";
+  if (state.phase === "teach") {
+    text = lessonData.teachWords[state.currentIndex].word;
+  } else if (state.phase === "play") {
+    text = lessonData.challengeWords[state.currentIndex];
+  }
+
+  if (!text) return;
+
+  for (let i = 0; i < 3; i++) {
+    speechTimers.push(setTimeout(() => speak(text), 350 + (i * 1200)));
+  }
+}
+
+function clearQueuedSpeech() {
+  speechTimers.forEach((timer) => clearTimeout(timer));
+  speechTimers = [];
+}
+
 function speak(text) {
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);

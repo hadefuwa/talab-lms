@@ -90,6 +90,7 @@ export default function GameLesson({ lesson, orgId, existingProgress, nextLesson
           src={gameSrc}
           className="w-full h-full border-0"
           sandbox="allow-scripts allow-same-origin"
+          allow="autoplay"
           title={lesson.title}
         />
         {submitting && (
