@@ -27,9 +27,13 @@ export default function GameLesson({ lesson, orgId, existingProgress }: Props) {
 
   useEffect(() => {
     async function onMessage(e: MessageEvent) {
-      if (e.data?.type !== "GAME_OVER") return;
+      const isGameOver = e.data?.type === "GAME_OVER";
+      const isLegacyKs1Complete = e.data?.type === "lessonCompleted";
+      if (!isGameOver && !isLegacyKs1Complete) return;
 
-      const score: number = e.data.score ?? 0;
+      const score: number = isLegacyKs1Complete
+        ? lesson.game_pass_score ?? 1
+        : e.data.score ?? 0;
       setSubmitting(true);
 
       const res = await fetch("/api/game/complete", {
@@ -48,6 +52,7 @@ export default function GameLesson({ lesson, orgId, existingProgress }: Props) {
 
   const sep = lesson.game_path?.includes('?') ? '&' : '?';
   const gameSrc = `${lesson.game_path}${sep}passScore=${lesson.game_pass_score ?? 5}&t=${reloadKey}`;
+  const isWideGame = lesson.game_path?.includes("/ks1-lab/");
 
   return (
     <div className="space-y-4">
@@ -55,7 +60,7 @@ export default function GameLesson({ lesson, orgId, existingProgress }: Props) {
       <div className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3">
         <div className="flex items-center gap-3 text-sm">
           <span className="text-gray-400">Pass mark:</span>
-          <span className="text-white font-semibold">{lesson.game_pass_score ?? 5} pipes</span>
+          <span className="text-white font-semibold">{lesson.game_pass_score ?? 5} points</span>
           {bestPrior !== null && (
             <>
               <span className="text-gray-700">·</span>
@@ -72,7 +77,12 @@ export default function GameLesson({ lesson, orgId, existingProgress }: Props) {
       </div>
 
       {/* Game iframe */}
-      <div className="relative bg-gray-950 rounded-2xl overflow-hidden border border-gray-800 mx-auto w-full max-w-sm" style={{ aspectRatio: "380 / 570" }}>
+      <div
+        className={`relative bg-gray-950 rounded-2xl overflow-hidden border border-gray-800 mx-auto w-full ${
+          isWideGame ? "max-w-5xl" : "max-w-sm"
+        }`}
+        style={{ aspectRatio: isWideGame ? "16 / 10" : "380 / 570" }}
+      >
         <iframe
           key={reloadKey}
           ref={iframeRef}

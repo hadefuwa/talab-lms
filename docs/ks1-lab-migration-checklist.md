@@ -1,0 +1,122 @@
+# KS1 Lab Game Migration Checklist
+
+Source: https://hadefuwa.github.io/ks1-lab/lessons.json
+
+Status key:
+- [x] Migrated into Talab
+- [ ] Pending migration
+
+Per-game checks before marking complete:
+- Copy all required files into `public/games/ks1-lab/lessonN/`.
+- Verify the game loads in Talab's iframe.
+- Verify completion saves progress through `GameLesson`.
+- Check mobile/tablet responsiveness.
+- Check whether the lesson needs keyboard input and is age-appropriate for the target course.
+
+## Games
+
+- [x] 001 - Lesson 1: Spelling (CVC Words) - `/games/ks1-lab/lesson1/index.html`
+- [ ] 002 - Lesson 2: 4-Letter Words
+- [ ] 003 - Lesson 3: First Letter Fun
+- [ ] 004 - Lesson 4: Vowel Power
+- [ ] 005 - Lesson 5: Perfect Endings
+- [ ] 006 - Lesson 6: Fashion Spelling
+- [ ] 007 - Lesson 7: Making Ten Magic
+- [ ] 008 - Lesson 8: Tens and Singles
+- [ ] 009 - Lesson 9: Double Digit Dash
+- [ ] 010 - Lesson 10: Big Number Boost
+- [ ] 011 - Lesson 11: Base-10 Block Party
+- [ ] 012 - Lesson 12: Space Block Adder
+- [ ] 013 - Lesson 13: Space Sums Academy
+- [ ] 014 - Lesson 14: Whole Hundreds Addition
+- [ ] 015 - Lesson 15: The 50s Nebula
+- [ ] 016 - Lesson 16: 3-Digit Addition Mastery
+- [ ] 017 - Lesson 17: Keyboard Block Mission
+- [ ] 018 - Lesson 18: Lily's Math Meadow
+- [ ] 019 - Lesson 19: Digraphs (sh, ch, th)
+- [ ] 020 - Lesson 20: 5-Letter Words
+- [ ] 021 - Lesson 21: Blend Beginnings
+- [ ] 022 - Lesson 22: Vowel Teams
+- [ ] 023 - Lesson 23: Blend Endings
+- [ ] 024 - Lesson 24: Accessories
+- [ ] 025 - Lesson 25: Tower Power (Vertical)
+- [ ] 026 - Lesson 26: The Magic Carrier
+- [ ] 027 - Lesson 27: Reading Thousands (Intro)
+- [ ] 028 - Lesson 28: Reading Thousands (Match Words)
+- [ ] 029 - Lesson 29: Reading Thousands (Build It)
+- [ ] 030 - Lesson 30: Reading Thousands (Which is Bigger?)
+- [ ] 031 - Lesson 31: Reading Thousands (Dictation)
+- [ ] 032 - Lesson 32: Double Digit Dash (Hard)
+- [ ] 033 - Lesson 33: Big Number Boost (Hard)
+- [ ] 034 - Lesson 34: Base-10 Block Party (Hard)
+- [ ] 035 - Lesson 35: Space Block Adder (Hard)
+- [ ] 036 - Lesson 36: Space Sums Academy (Hard)
+- [ ] 037 - Lesson 37: Whole Hundreds Addition (Hard)
+- [ ] 038 - Lesson 38: The 50s Nebula (Hard)
+- [ ] 039 - Lesson 39: 3-Digit Addition Mastery (Hard)
+- [ ] 040 - Lesson 40: Keyboard Block Mission (Hard)
+- [ ] 041 - Lesson 41: Lily's Math Meadow (Hard)
+- [ ] 042 - Lesson 42: Tower Power (Simple)
+- [ ] 043 - Lesson 43: The Magic Carrier
+- [ ] 044 - Lesson 44: Construction Crew
+- [ ] 045 - Lesson 45: Rocket Math
+- [ ] 046 - Lesson 46: Tower Power (Simple)
+- [ ] 047 - Lesson 47: The Magic Carrier
+- [ ] 048 - Lesson 48: Construction Crew
+- [ ] 049 - Lesson 49: Rocket Math
+- [ ] 050 - Lesson 50: Balloon Pop (Sum to 5)
+- [ ] 051 - Lesson 51: Balloon Pop (Sum to 10)
+- [ ] 052 - Lesson 52: Balloon Pop (Sum to 20)
+- [ ] 053 - Lesson 53: Balloon Pop (Sum to 100)
+- [ ] 054 - Lesson 54: Balloon Pop (3-Digits)
+- [ ] 055 - Lesson 55: Double Digits
+- [ ] 056 - Lesson 56: Triple Tower
+- [ ] 057 - Lesson 57: Big Number Carry
+- [ ] 058 - Lesson 58: Double Carry Challenge
+- [ ] 059 - Lesson 59: Challenge Mode (Subtraction)
+- [ ] 060 - Lesson 60: Challenge Mode (Multiplication)
+- [ ] 061 - Lesson 61: Balloon Numbers - Easy
+- [ ] 062 - Lesson 62: Balloon Pop - Add to 10
+- [ ] 063 - Lesson 63: Balloon Pop - Add to 20
+- [ ] 064 - Lesson 64: Balloon Pop - Speed Round
+- [ ] 065 - Lesson 65: Challenge Mode (Hard Addition)
+- [ ] 066 - Lesson 66: Challenge Mode (Mixed)
+- [ ] 067 - Lesson 67: Challenge Mode (Survival)
+- [ ] 068 - Lesson 68: Colour Spelling - Level 1
+- [ ] 069 - Lesson 69: Colour Spelling - Level 2
+- [ ] 070 - Lesson 70: Colour Spelling - Level 3
+- [ ] 071 - Lesson 71: Colour Spelling - Level 4
+- [ ] 072 - Lesson 72: Colour Spelling - Level 5
+- [ ] 073 - Lesson 73: Colour Spelling - Level 6
+- [ ] 074 - Lesson 74: Colour Spelling - Level 7
+- [ ] 075 - Lesson 75: Take Away to 10
+- [ ] 076 - Lesson 76: Take Away to 20
+- [ ] 077 - Lesson 77: Subtract Tens to 100
+- [ ] 078 - Lesson 78: Column Subtraction
+- [ ] 079 - Lesson 79: Subtraction with Borrowing
+- [ ] 080 - Lesson 80: 3-Digit Subtraction
+- [ ] 081 - Lesson 81: Subtraction Balloon Pop
+- [ ] 082 - Lesson 82: Subtraction Survival
+- [ ] 083 - Lesson 83: O'Clock Times
+- [ ] 084 - Lesson 84: Half Past
+- [ ] 085 - Lesson 85: Quarter Past and Quarter To
+- [ ] 086 - Lesson 86: 5-Minute Intervals
+- [ ] 087 - Lesson 87: Digital to Analogue
+- [ ] 088 - Lesson 88: Clock Speed Challenge
+- [ ] 089 - Lesson 89: Coin Recognition
+- [ ] 090 - Lesson 90: Count the Coins
+- [ ] 091 - Lesson 91: Make the Amount
+- [ ] 092 - Lesson 92: Comparing Prices
+- [ ] 093 - Lesson 93: Calculate Change
+- [ ] 094 - Lesson 94: Shopping Speed Challenge
+- [ ] 095 - Lesson 95: Word Problems 1 (Sums to 10)
+- [ ] 096 - Lesson 96: Word Problems 2 (Sums to 20)
+- [ ] 097 - Lesson 97: Word Problems 3 (Missing Addend)
+- [ ] 098 - Lesson 98: Word Problems 4 (Sums to 50)
+- [ ] 099 - Lesson 99: Word Problems 5 (Sums to 100)
+- [ ] 100 - Lesson 100: Word Problems 6 (Harder Missing Addend)
+- [ ] 101 - Lesson 101: Skip-counting by 1s
+- [ ] 102 - Lesson 102: Skip-counting by 5s
+- [ ] 103 - Lesson 103: Skip-counting by 10s
+- [ ] 104 - Lesson 104: Skip-counting by 100s
+- [ ] 105 - Lesson 105: Skip-counting by 1000s
