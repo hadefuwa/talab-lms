@@ -643,19 +643,19 @@ function CountingGameBlock({
   }
 
   return (
-    <div className="bg-white border border-slate-100 rounded-2xl p-5 sm:p-8 shadow-card space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
+    <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-6 shadow-card h-[clamp(28rem,calc(100dvh-14rem),46rem)] min-h-0 flex flex-col gap-3 sm:gap-4 overflow-hidden">
+      <div className="flex items-center justify-between gap-3 shrink-0">
+        <div className="min-w-0">
           <span className="text-xs font-bold text-talab-600 uppercase tracking-wide">Tap and count</span>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-800">{block.prompt}</h2>
+          <h2 className="text-xl sm:text-3xl font-black text-slate-800 leading-tight">{block.prompt}</h2>
         </div>
         <button
           type="button"
           onClick={playPrompt}
           aria-label="Play instructions"
-          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-talab-600 text-white flex items-center justify-center shadow-sm active:scale-95 transition-transform"
+          className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-talab-600 text-white flex items-center justify-center shadow-sm active:scale-95 transition-transform shrink-0"
         >
-          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <svg className="w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8v8a1 1 0 0 0 1 1h1l4 3V4L7 7H6a1 1 0 0 0-1 1z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 0 1 0 7.072" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 0 1 0 12.728" />
@@ -663,7 +663,7 @@ function CountingGameBlock({
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 auto-rows-fr gap-2 sm:gap-4 flex-1 min-h-0">
         {clicked.map((isClicked, index) => (
           <button
             key={index}
@@ -671,7 +671,7 @@ function CountingGameBlock({
             onClick={() => handleTap(index)}
             disabled={isClicked || state.answered}
             aria-label={`Count item ${index + 1}`}
-            className={`aspect-square rounded-2xl border-4 text-6xl sm:text-7xl flex items-center justify-center transition-all touch-manipulation ${
+            className={`h-full min-h-0 rounded-2xl border-4 text-[clamp(2.5rem,10vmin,4.5rem)] flex items-center justify-center transition-all touch-manipulation overflow-hidden ${
               isClicked
                 ? "border-green-300 bg-green-50 scale-95"
                 : "border-talab-200 bg-talab-50 active:scale-95 hover:border-talab-300"
@@ -682,16 +682,16 @@ function CountingGameBlock({
         ))}
       </div>
 
-      <div className="min-h-24 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center">
+      <div className="h-16 sm:h-24 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
         {failed ? (
-          <div className="text-3xl font-black text-red-600">Try again</div>
+          <div className="text-2xl sm:text-3xl font-black text-red-600">Try again</div>
         ) : lastNumber ? (
-          <div className="text-6xl font-black text-talab-600">{lastNumber}</div>
+          <div className="text-5xl sm:text-6xl font-black text-talab-600">{lastNumber}</div>
         ) : (
           <button
             type="button"
             onClick={playPrompt}
-            className="px-6 py-3 bg-white border-2 border-talab-200 text-talab-700 font-bold rounded-full"
+            className="px-5 py-2.5 sm:px-6 sm:py-3 bg-white border-2 border-talab-200 text-talab-700 font-bold rounded-full"
           >
             Listen
           </button>
@@ -699,7 +699,7 @@ function CountingGameBlock({
       </div>
 
       {complete && (
-        <div className="flex items-center justify-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-green-800 font-semibold">
+        <div className="flex items-center justify-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2 sm:py-3 text-green-800 font-semibold shrink-0">
           <span>Done</span>
           <span>+{state.xpEarned || xpPerQuestion} XP</span>
         </div>
