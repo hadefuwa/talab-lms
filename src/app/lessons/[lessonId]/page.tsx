@@ -29,6 +29,7 @@ export default async function LessonPage({ params }: Props) {
 
   const profile = profileData as unknown as Profile | null;
   const lesson = lessonData as unknown as Lesson & { courses: { id: string; title: string; is_free: boolean } };
+  const isGameLesson = lesson.lesson_type === "game";
 
   if (profile?.role !== "founder" && !lesson.courses.is_free) {
     let hasAccess = false;
@@ -60,7 +61,7 @@ export default async function LessonPage({ params }: Props) {
       <Navbar profile={profile} />
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+          <div className={`${isGameLesson ? "max-w-7xl" : "max-w-4xl"} mx-auto px-4 sm:px-6 py-8 space-y-6`}>
             <div>
               <div className="flex items-center justify-between">
                 <a href={`/courses/${lesson.course_id}`} className="text-sm text-talab-600 hover:text-talab-700 font-medium inline-flex items-center gap-1">
@@ -110,7 +111,9 @@ export default async function LessonPage({ params }: Props) {
             )}
           </div>
         </main>
-        <GeminiSidebar lessonTitle={lesson.title} lessonContext={lesson.content_body ?? ""} />
+        {!isGameLesson && (
+          <GeminiSidebar lessonTitle={lesson.title} lessonContext={lesson.content_body ?? ""} />
+        )}
       </div>
     </div>
   );

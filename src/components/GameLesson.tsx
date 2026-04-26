@@ -52,7 +52,7 @@ export default function GameLesson({ lesson, orgId, existingProgress }: Props) {
 
   const sep = lesson.game_path?.includes('?') ? '&' : '?';
   const gameSrc = `${lesson.game_path}${sep}passScore=${lesson.game_pass_score ?? 5}&t=${reloadKey}`;
-  const isWideGame = lesson.game_path?.includes("/ks1-lab/") || lesson.game_path?.includes("/ks2-lab/");
+  const isImportedLabGame = lesson.game_path?.includes("/ks1-lab/") || lesson.game_path?.includes("/ks2-lab/");
 
   return (
     <div className="space-y-4">
@@ -79,9 +79,9 @@ export default function GameLesson({ lesson, orgId, existingProgress }: Props) {
       {/* Game iframe */}
       <div
         className={`relative bg-gray-950 rounded-2xl overflow-hidden border border-gray-800 mx-auto w-full ${
-          isWideGame ? "max-w-5xl" : "max-w-sm"
+          isImportedLabGame ? "max-w-7xl h-[clamp(42rem,calc(100dvh-12rem),56rem)]" : "max-w-sm"
         }`}
-        style={{ aspectRatio: isWideGame ? "16 / 10" : "380 / 570" }}
+        style={isImportedLabGame ? undefined : { aspectRatio: "380 / 570" }}
       >
         <iframe
           key={reloadKey}
