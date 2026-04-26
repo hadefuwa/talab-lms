@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "xp_reward": 50,
+  "blocks": [
+    {
+      "type": "counting_game",
+      "prompt": "Tap only one apple",
+      "item": "\ud83c\udf4e",
+      "count": 1,
+      "total_items": 3,
+      "success": "One apple. You stopped at one.",
+      "fail_message": "Too many apples. Try again."
+    },
+    {
+      "type": "counting_game",
+      "prompt": "Tap only two ducks",
+      "item": "\ud83e\udd86",
+      "count": 2,
+      "total_items": 4,
+      "success": "One, two. You stopped at two ducks.",
+      "fail_message": "Too many ducks. Try again."
+    },
+    {
+      "type": "counting_game",
+      "prompt": "Tap only three stars",
+      "item": "\u2b50",
+      "count": 3,
+      "total_items": 5,
+      "success": "One, two, three. You stopped at three stars.",
+      "fail_message": "Too many stars. Try again."
+    },
+    {
+      "type": "counting_game",
+      "prompt": "Tap only four cars",
+      "item": "\ud83d\ude97",
+      "count": 4,
+      "total_items": 6,
+      "success": "One, two, three, four. You stopped at four cars.",
+      "fail_message": "Too many cars. Try again."
+    },
+    {
+      "type": "counting_game",
+      "prompt": "Tap only five frogs",
+      "item": "\ud83d\udc38",
+      "count": 5,
+      "total_items": 7,
+      "success": "One, two, three, four, five. You stopped at five frogs. Well done.",
+      "fail_message": "Too many frogs. Try again."
+    },
+    {
+      "type": "celebration",
+      "message": "Stop counting complete"
+    }
+  ]
+}

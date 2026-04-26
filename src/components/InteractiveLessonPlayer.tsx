@@ -31,7 +31,9 @@ type CountingGameBlock = {
   prompt: string;
   item: string;
   count: number;
+  total_items?: number;
   success?: string;
+  fail_message?: string;
 };
 
 type FillBlankBlock = {
@@ -85,11 +87,12 @@ interface Props {
   lesson: Lesson;
   orgId: string;
   existingProgress: ProgressLog | null;
+  nextLessonId?: string | null;
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function InteractiveLessonPlayer({ lesson, orgId, existingProgress }: Props) {
+export default function InteractiveLessonPlayer({ lesson, orgId, existingProgress, nextLessonId }: Props) {
   const [lessonData, setLessonData] = useState<LessonData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -244,6 +247,7 @@ export default function InteractiveLessonPlayer({ lesson, orgId, existingProgres
             alreadyCompleted={alreadyCompleted}
             lessonId={lesson.id}
             courseId={lesson.course_id}
+            nextLessonId={nextLessonId}
           />
         ) : currentBlock.type === "explanation" ? (
           <ExplanationBlock
@@ -320,9 +324,7 @@ export default function InteractiveLessonPlayer({ lesson, orgId, existingProgres
         ) : currentBlock.type === "celebration" ? (
           <CelebrationBlock
             block={currentBlock}
-            onContinue={() => {
-              updateBlockState(currentIndex, { answered: true });
-            }}
+            onContinue={advance}
           />
         ) : null}
       </div>
@@ -553,16 +555,23 @@ function CountingGameBlock({
   xpPerQuestion: number;
   onComplete: (xp: number) => void;
 }) {
-  const [clicked, setClicked] = useState<boolean[]>(() => Array(block.count).fill(false));
+  const itemCount = Math.max(block.total_items ?? block.count, block.count);
+  const canOvercount = itemCount > block.count;
+  const [clicked, setClicked] = useState<boolean[]>(() => Array(itemCount).fill(false));
   const [lastNumber, setLastNumber] = useState<number | null>(null);
+  const [failed, setFailed] = useState(false);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clickedCount = clicked.filter(Boolean).length;
-  const complete = clickedCount === block.count;
+  const complete = state.answered;
 
   useEffect(() => {
     speakRepeated(block.prompt, 3);
 
     return () => {
+      if (successTimerRef.current) {
+        clearTimeout(successTimerRef.current);
+      }
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
         window.speechSynthesis.cancel();
       }
@@ -605,13 +614,31 @@ function CountingGameBlock({
     nextClicked[index] = true;
     setClicked(nextClicked);
     setLastNumber(nextNumber);
+    setFailed(false);
     speak(String(nextNumber));
 
-    if (nextNumber === block.count) {
+    if (nextNumber > block.count) {
+      if (successTimerRef.current) {
+        clearTimeout(successTimerRef.current);
+        successTimerRef.current = null;
+      }
+      setFailed(true);
       setTimeout(() => {
+        setClicked(Array(itemCount).fill(false));
+        setLastNumber(null);
+        setFailed(false);
+        speakRepeated(block.prompt, 3);
+      }, 1400);
+      speak(block.fail_message ?? "Too many. Try again.", false);
+      return;
+    }
+
+    if (nextNumber === block.count) {
+      successTimerRef.current = setTimeout(() => {
         speak(block.success ?? `${block.count}. Well done.`, false);
         onComplete(xpPerQuestion);
-      }, 650);
+        successTimerRef.current = null;
+      }, canOvercount ? 1400 : 650);
     }
   }
 
@@ -656,7 +683,9 @@ function CountingGameBlock({
       </div>
 
       <div className="min-h-24 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center">
-        {lastNumber ? (
+        {failed ? (
+          <div className="text-3xl font-black text-red-600">Try again</div>
+        ) : lastNumber ? (
           <div className="text-6xl font-black text-talab-600">{lastNumber}</div>
         ) : (
           <button
@@ -852,6 +881,7 @@ function SummaryScreen({
   alreadyCompleted,
   lessonId,
   courseId,
+  nextLessonId,
 }: {
   stars: number;
   totalXp: number;
@@ -862,6 +892,7 @@ function SummaryScreen({
   alreadyCompleted: boolean;
   lessonId: string;
   courseId: string;
+  nextLessonId?: string | null;
 }) {
   return (
     <div className="bg-white border border-slate-100 rounded-2xl p-10 shadow-card text-center space-y-6 animate-fade-in">
@@ -909,7 +940,7 @@ function SummaryScreen({
           ← Back to Course
         </a>
         <a
-          href={`/courses/${courseId}`}
+          href={nextLessonId ? `/lessons/${nextLessonId}` : `/courses/${courseId}`}
           className="px-6 py-3 bg-talab-600 hover:bg-talab-700 text-white font-semibold rounded-xl transition-colors"
         >
           Next Lesson →

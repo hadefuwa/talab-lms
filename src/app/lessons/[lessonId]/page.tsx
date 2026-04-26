@@ -45,6 +45,16 @@ export default async function LessonPage({ params }: Props) {
     .from("progress_logs").select("*").eq("student_id", user.id).eq("lesson_id", lessonId).maybeSingle();
   const progress = progressData as unknown as ProgressLog | null;
 
+  const { data: nextLessonData } = await supabase
+    .from("lessons")
+    .select("id")
+    .eq("course_id", lesson.course_id)
+    .gt("position", lesson.position)
+    .order("position", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  const nextLessonId = (nextLessonData as { id: string } | null)?.id ?? null;
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <Navbar profile={profile} />
@@ -69,7 +79,12 @@ export default async function LessonPage({ params }: Props) {
             </div>
 
             {lesson.lesson_type === "interactive" && (lesson.content_path || lesson.content_body) ? (
-              <InteractiveLessonPlayer lesson={lesson} orgId={profile?.org_id ?? ""} existingProgress={progress} />
+              <InteractiveLessonPlayer
+                lesson={lesson}
+                orgId={profile?.org_id ?? ""}
+                existingProgress={progress}
+                nextLessonId={nextLessonId}
+              />
             ) : lesson.lesson_type === "game" && lesson.game_path ? (
               <GameLesson lesson={lesson} orgId={profile?.org_id ?? ""} existingProgress={progress} />
             ) : (
