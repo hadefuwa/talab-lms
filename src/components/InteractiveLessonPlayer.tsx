@@ -559,6 +559,17 @@ function CountingGameBlock({
   const clickedCount = clicked.filter(Boolean).length;
   const complete = clickedCount === block.count;
 
+  useEffect(() => {
+    speakRepeated(block.prompt, 3);
+
+    return () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [block.prompt]);
+
   function speak(text: string, cancelCurrent = true) {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
@@ -569,8 +580,21 @@ function CountingGameBlock({
     window.speechSynthesis.speak(utterance);
   }
 
+  function speakRepeated(text: string, times: number) {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+
+    window.speechSynthesis.cancel();
+
+    for (let i = 0; i < times; i += 1) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.85;
+      utterance.pitch = 1.05;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
   function playPrompt() {
-    speak(block.prompt);
+    speakRepeated(block.prompt, 3);
   }
 
   function handleTap(index: number) {
