@@ -26,6 +26,14 @@ type MultipleChoiceBlock = {
   hint?: string;
 };
 
+type CountingGameBlock = {
+  type: "counting_game";
+  prompt: string;
+  item: string;
+  count: number;
+  success?: string;
+};
+
 type FillBlankBlock = {
   type: "fill_blank";
   question: string;
@@ -43,6 +51,7 @@ type Block =
   | ExplanationBlock
   | WorkedExampleBlock
   | MultipleChoiceBlock
+  | CountingGameBlock
   | FillBlankBlock
   | CelebrationBlock;
 
@@ -135,7 +144,7 @@ export default function InteractiveLessonPlayer({ lesson, orgId, existingProgres
   const blocks = lessonData.blocks;
   const xpReward = lessonData.xp_reward ?? 50;
   const totalQuestions = blocks.filter(
-    (b) => b.type === "multiple_choice" || b.type === "fill_blank"
+    (b) => b.type === "multiple_choice" || b.type === "counting_game" || b.type === "fill_blank"
   ).length;
   const totalXp = blockStates.reduce((sum, s) => sum + s.xpEarned, 0);
   const correctAnswers = blockStates.filter((s) => s.correct).length;
@@ -144,7 +153,7 @@ export default function InteractiveLessonPlayer({ lesson, orgId, existingProgres
   const stars = (() => {
     const questionStates = blockStates.filter((_, i) => {
       const b = blocks[i];
-      return b.type === "multiple_choice" || b.type === "fill_blank";
+      return b.type === "multiple_choice" || b.type === "counting_game" || b.type === "fill_blank";
     });
     if (questionStates.length === 0) return 3;
     if (questionStates.every((s) => s.correct && s.attempts === 1)) return 3;
@@ -270,6 +279,20 @@ export default function InteractiveLessonPlayer({ lesson, orgId, existingProgres
                 answered: true,
                 revealed: true,
                 xpEarned: 0,
+              });
+            }}
+          />
+        ) : currentBlock.type === "counting_game" ? (
+          <CountingGameBlock
+            block={currentBlock}
+            state={blockStates[currentIndex]}
+            xpPerQuestion={Math.round(xpReward / Math.max(totalQuestions, 1))}
+            onComplete={(xp) => {
+              updateBlockState(currentIndex, {
+                answered: true,
+                correct: true,
+                xpEarned: xp,
+                attempts: 1,
               });
             }}
           />
@@ -518,6 +541,119 @@ function MultipleChoiceBlock({
 }
 
 // ─── FillBlankBlock ───────────────────────────────────────────────────────────
+
+function CountingGameBlock({
+  block,
+  state,
+  xpPerQuestion,
+  onComplete,
+}: {
+  block: CountingGameBlock;
+  state: BlockState;
+  xpPerQuestion: number;
+  onComplete: (xp: number) => void;
+}) {
+  const [clicked, setClicked] = useState<boolean[]>(() => Array(block.count).fill(false));
+  const [lastNumber, setLastNumber] = useState<number | null>(null);
+
+  const clickedCount = clicked.filter(Boolean).length;
+  const complete = clickedCount === block.count;
+
+  function speak(text: string, cancelCurrent = true) {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+
+    if (cancelCurrent) window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.85;
+    utterance.pitch = 1.05;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function playPrompt() {
+    speak(block.prompt);
+  }
+
+  function handleTap(index: number) {
+    if (clicked[index] || state.answered) return;
+
+    const nextNumber = clickedCount + 1;
+    const nextClicked = [...clicked];
+    nextClicked[index] = true;
+    setClicked(nextClicked);
+    setLastNumber(nextNumber);
+    speak(String(nextNumber));
+
+    if (nextNumber === block.count) {
+      setTimeout(() => {
+        speak(block.success ?? `${block.count}. Well done.`, false);
+        onComplete(xpPerQuestion);
+      }, 650);
+    }
+  }
+
+  return (
+    <div className="bg-white border border-slate-100 rounded-2xl p-5 sm:p-8 shadow-card space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <span className="text-xs font-bold text-talab-600 uppercase tracking-wide">Tap and count</span>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-800">{block.prompt}</h2>
+        </div>
+        <button
+          type="button"
+          onClick={playPrompt}
+          aria-label="Play instructions"
+          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-talab-600 text-white flex items-center justify-center shadow-sm active:scale-95 transition-transform"
+        >
+          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8v8a1 1 0 0 0 1 1h1l4 3V4L7 7H6a1 1 0 0 0-1 1z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 0 1 0 7.072" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 0 1 0 12.728" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {clicked.map((isClicked, index) => (
+          <button
+            key={index}
+            type="button"
+            onClick={() => handleTap(index)}
+            disabled={isClicked || state.answered}
+            aria-label={`Count item ${index + 1}`}
+            className={`aspect-square rounded-2xl border-4 text-6xl sm:text-7xl flex items-center justify-center transition-all touch-manipulation ${
+              isClicked
+                ? "border-green-300 bg-green-50 scale-95"
+                : "border-talab-200 bg-talab-50 active:scale-95 hover:border-talab-300"
+            }`}
+          >
+            <span className={isClicked ? "grayscale opacity-70" : ""}>{block.item}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="min-h-24 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center">
+        {lastNumber ? (
+          <div className="text-6xl font-black text-talab-600">{lastNumber}</div>
+        ) : (
+          <button
+            type="button"
+            onClick={playPrompt}
+            className="px-6 py-3 bg-white border-2 border-talab-200 text-talab-700 font-bold rounded-full"
+          >
+            Listen
+          </button>
+        )}
+      </div>
+
+      {complete && (
+        <div className="flex items-center justify-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-green-800 font-semibold">
+          <span>Done</span>
+          <span>+{state.xpEarned || xpPerQuestion} XP</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function FillBlankBlock({
   block,
