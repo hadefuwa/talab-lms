@@ -22,7 +22,7 @@ const lessonData = {
 };
 
 let state = {
-  phase: "intro", // intro, teach, play, victory, gameover
+  phase: "teach", // teach, play, victory, gameover
   score: 0,
   currentIndex: 0,
   hearts: 3,
@@ -279,7 +279,12 @@ function nextWord() {
 }
 
 function resetGame() {
-  state.phase = "intro";
+  state.phase = "teach";
+  state.currentIndex = 0;
+  state.score = 0;
+  state.hearts = 3;
+  state.streak = 0;
+  state.currentAttempts = 0;
   render();
 }
 
