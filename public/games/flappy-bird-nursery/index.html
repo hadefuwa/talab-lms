@@ -365,11 +365,18 @@
     update();
     drawBg();
     drawPipes();
-    drawBird();
+    if (bird) drawBird();
     drawScore();
     if (phase === 'idle' || phase === 'dead') drawPanel();
     requestAnimationFrame(loop);
   }
+
+  // Initialize bird so idle screen doesn't crash the loop
+  bird   = initBird();
+  pipes  = [];
+  score  = 0;
+  frameN = 0;
+  wingT  = 0;
 
   loop();
 })();
