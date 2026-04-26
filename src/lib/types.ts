@@ -40,7 +40,7 @@ export interface Lesson {
   content_body: string | null;
   position: number;
   duration_seconds: number | null;
-  lesson_type: "content" | "video" | "game";
+  lesson_type: "content" | "video" | "game" | "interactive";
   game_path: string | null;
   game_pass_score: number | null;
   created_at: string;

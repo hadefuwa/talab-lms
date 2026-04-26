@@ -8,18 +8,10 @@ interface Props {
   label?: string;
 }
 
-type Status = "idle" | "loading" | "playing" | "error";
+type Status = "idle" | "playing" | "error";
 
-type KokoroModule = typeof import("kokoro-js");
-type KokoroModel = Awaited<ReturnType<KokoroModule["KokoroTTS"]["from_pretrained"]>>;
-
-const MODEL_ID = "onnx-community/Kokoro-82M-v1.0-ONNX";
-const VOICE = "bf_emma";
-
-let kokoroPromise: Promise<KokoroModel> | null = null;
-
-function splitTextForAudio(text: string) {
-  const maxLength = 260;
+function splitTextForSpeech(text: string) {
+  const maxLength = 220;
   const normalized = text.replace(/\s+/g, " ").trim();
   const sentences = normalized.match(/[^.!?]+[.!?]+|[^.!?]+$/g) ?? [normalized];
   const chunks: string[] = [];
@@ -50,122 +42,70 @@ function splitTextForAudio(text: string) {
   return chunks;
 }
 
-async function getKokoroModel() {
-  if (!kokoroPromise) {
-    kokoroPromise = (async () => {
-      const { KokoroTTS } = await import("kokoro-js");
-
-      return KokoroTTS.from_pretrained(MODEL_ID, {
-        dtype: "q8",
-        device: "wasm",
-      });
-    })();
-  }
-
-  return kokoroPromise;
-}
-
 export default function TTSButton({ text, size = "sm", label }: Props) {
   const [status, setStatus] = useState<Status>("idle");
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const objectUrlsRef = useRef<string[]>([]);
   const runIdRef = useRef(0);
-
-  const clearObjectUrls = useCallback(() => {
-    for (const url of objectUrlsRef.current) {
-      URL.revokeObjectURL(url);
-    }
-    objectUrlsRef.current = [];
-  }, []);
+  const utterancesRef = useRef<SpeechSynthesisUtterance[]>([]);
 
   const stop = useCallback(() => {
     runIdRef.current += 1;
+    utterancesRef.current = [];
 
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.removeAttribute("src");
-      audioRef.current.load();
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
     }
 
-    clearObjectUrls();
     setStatus("idle");
-  }, [clearObjectUrls]);
-
-  useEffect(() => {
-    return () => {
-      runIdRef.current += 1;
-
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.removeAttribute("src");
-        audioRef.current.load();
-      }
-
-      clearObjectUrls();
-    };
-  }, [clearObjectUrls]);
-
-  const playAudioBlob = useCallback(async (blob: Blob, runId: number) => {
-    if (runId !== runIdRef.current) return;
-
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const url = URL.createObjectURL(blob);
-    objectUrlsRef.current.push(url);
-    audio.src = url;
-    audio.currentTime = 0;
-    await audio.play();
-
-    await new Promise<void>((resolve, reject) => {
-      audio.onended = () => resolve();
-      audio.onerror = () => reject(new Error("Audio playback failed"));
-    });
   }, []);
 
-  const play = useCallback(async () => {
-    const chunks = splitTextForAudio(text);
+  useEffect(() => stop, [stop]);
+
+  const play = useCallback(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setStatus("error");
+      return;
+    }
+
+    const chunks = splitTextForSpeech(text);
     if (chunks.length === 0) return;
 
     stop();
+
     const runId = runIdRef.current + 1;
     runIdRef.current = runId;
+    const synth = window.speechSynthesis;
+    const utterances = chunks.map((chunk) => {
+      const utterance = new SpeechSynthesisUtterance(chunk);
+      utterance.rate = 1;
+      return utterance;
+    });
 
-    const audio = new Audio();
-    audio.preload = "auto";
-    audioRef.current = audio;
-    setStatus("loading");
+    utterancesRef.current = utterances;
+    setStatus("playing");
 
-    try {
-      const model = await getKokoroModel();
-      if (runId !== runIdRef.current) return;
-
-      for (const chunk of chunks) {
-        const output = await model.generate(chunk, {
-          voice: VOICE,
-          speed: 1,
-        });
-
+    utterances.forEach((utterance, index) => {
+      utterance.onend = () => {
         if (runId !== runIdRef.current) return;
 
-        setStatus("playing");
-        await playAudioBlob(output.toBlob(), runId);
-      }
+        if (index === utterances.length - 1) {
+          utterancesRef.current = [];
+          setStatus("idle");
+        }
+      };
 
-      if (runId === runIdRef.current) {
-        clearObjectUrls();
-        setStatus("idle");
-      }
-    } catch (error) {
-      if (runId !== runIdRef.current) return;
-      console.error(error);
-      clearObjectUrls();
-      setStatus("error");
-    }
-  }, [clearObjectUrls, playAudioBlob, stop, text]);
+      utterance.onerror = () => {
+        if (runId !== runIdRef.current) return;
 
-  const active = status === "loading" || status === "playing";
-  const buttonLabel = status === "loading" ? "Loading voice..." : active ? "Stop reading" : label ?? "Read to me";
+        utterancesRef.current = [];
+        setStatus("error");
+      };
+
+      synth.speak(utterance);
+    });
+  }, [stop, text]);
+
+  const active = status === "playing";
+  const buttonLabel = active ? "Stop reading" : label ?? "Read to me";
 
   if (size === "lg") {
     return (

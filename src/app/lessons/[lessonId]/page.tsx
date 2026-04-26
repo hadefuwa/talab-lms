@@ -5,6 +5,7 @@ import VideoPlayer from "@/components/VideoPlayer";
 import GeminiSidebar from "@/components/GeminiSidebar";
 import ProgressButton from "@/components/ProgressButton";
 import GameLesson from "@/components/GameLesson";
+import InteractiveLessonPlayer from "@/components/InteractiveLessonPlayer";
 import TTSButton from "@/components/TTSButton";
 import type { Course, Lesson, Organization, Profile, ProgressLog } from "@/lib/types";
 
@@ -67,7 +68,9 @@ export default async function LessonPage({ params }: Props) {
               <h1 className="text-2xl font-black text-slate-800 mt-3">{lesson.title}</h1>
             </div>
 
-            {lesson.lesson_type === "game" && lesson.game_path ? (
+            {lesson.lesson_type === "interactive" && lesson.content_body ? (
+              <InteractiveLessonPlayer lesson={lesson} orgId={profile?.org_id ?? ""} existingProgress={progress} />
+            ) : lesson.lesson_type === "game" && lesson.game_path ? (
               <GameLesson lesson={lesson} orgId={profile?.org_id ?? ""} existingProgress={progress} />
             ) : (
               <>
