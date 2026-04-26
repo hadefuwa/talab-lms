@@ -16,6 +16,7 @@ const BUILT_IN_GAMES = [
   { label: "Flappy Bird Nursery — Level 2 (Medium, pass 5)", path: "/games/flappy-bird-nursery/index.html?level=2" },
   { label: "Flappy Bird Nursery — Level 3 (Hard, pass 8)", path: "/games/flappy-bird-nursery/index.html?level=3" },
   { label: "KS1 Lab - Lesson 1: Spelling (CVC Words)", path: "/games/ks1-lab/lesson1/index.html" },
+  { label: "KS1 Lab - Lesson 2: 4-Letter Words", path: "/games/ks1-lab/lesson2/index.html" },
 ];
 
 export default function LessonForm({ courseId, lesson }: Props) {

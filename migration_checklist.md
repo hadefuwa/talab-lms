@@ -16,7 +16,7 @@ Per-game checks before marking complete:
 ## Games
 
 - [x] 001 - Lesson 1: Spelling (CVC Words) - `/games/ks1-lab/lesson1/index.html`
-- [ ] 002 - Lesson 2: 4-Letter Words
+- [x] 002 - Lesson 2: 4-Letter Words - `/games/ks1-lab/lesson2/index.html`
 - [ ] 003 - Lesson 3: First Letter Fun
 - [ ] 004 - Lesson 4: Vowel Power
 - [ ] 005 - Lesson 5: Perfect Endings
