@@ -23,7 +23,7 @@ export default function LessonForm({ courseId, lesson }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [lessonType, setLessonType] = useState<"content" | "video" | "game">(
+  const [lessonType, setLessonType] = useState<"content" | "video" | "game" | "interactive">(
     lesson?.lesson_type ?? "content"
   );
 
@@ -41,6 +41,7 @@ export default function LessonForm({ courseId, lesson }: Props) {
       lesson_type: lessonType,
       r2_key: null,
       content_body: null,
+      content_path: null,
       game_path: null,
       game_pass_score: null,
       duration_seconds: durationMins ? parseInt(durationMins, 10) * 60 : null,
@@ -54,6 +55,8 @@ export default function LessonForm({ courseId, lesson }: Props) {
     } else if (lessonType === "game") {
       payload.game_path = (fd.get("game_path") as string) || null;
       payload.game_pass_score = parseInt(fd.get("game_pass_score") as string, 10) || 5;
+    } else if (lessonType === "interactive") {
+      payload.content_path = (fd.get("content_path") as string) || null;
     }
 
     if (isEdit) {
@@ -106,8 +109,8 @@ export default function LessonForm({ courseId, lesson }: Props) {
 
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-2">Lesson Type</label>
-        <div className="grid grid-cols-3 gap-2">
-          {(["content", "video", "game"] as const).map((t) => (
+        <div className="grid grid-cols-2 gap-2">
+          {(["content", "video", "game", "interactive"] as const).map((t) => (
             <button
               key={t} type="button" onClick={() => setLessonType(t)}
               className={`py-2 rounded-xl text-sm font-medium border transition-colors capitalize ${
@@ -116,7 +119,7 @@ export default function LessonForm({ courseId, lesson }: Props) {
                   : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500"
               }`}
             >
-              {t === "content" ? "📄 Reading" : t === "video" ? "🎬 Video" : "🎮 Game"}
+              {t === "content" ? "📄 Reading" : t === "video" ? "🎬 Video" : t === "game" ? "🎮 Game" : "🧩 Interactive"}
             </button>
           ))}
         </div>
@@ -164,6 +167,20 @@ export default function LessonForm({ courseId, lesson }: Props) {
             defaultValue={lesson?.content_body ?? ""}
             placeholder="<p>Lesson notes, explanations, resources...</p>"
             className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-talab-500 resize-y font-mono text-sm"
+          />
+        </div>
+      )}
+
+      {lessonType === "interactive" && (
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+            Lesson file <span className="text-gray-500 font-normal ml-1">(filename in /public/lessons/)</span>
+          </label>
+          <input
+            name="content_path"
+            defaultValue={lesson?.content_path ?? ""}
+            placeholder="nursery-counting-to-5.json"
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-talab-500 font-mono text-sm"
           />
         </div>
       )}
