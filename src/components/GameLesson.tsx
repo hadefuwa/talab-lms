@@ -7,6 +7,7 @@ interface Props {
   lesson: Lesson;
   orgId: string;
   existingProgress: ProgressLog | null;
+  nextLessonId?: string | null;
 }
 
 type GameResult = {
@@ -16,7 +17,7 @@ type GameResult = {
   bestScore: number;
 };
 
-export default function GameLesson({ lesson, orgId, existingProgress }: Props) {
+export default function GameLesson({ lesson, orgId, existingProgress, nextLessonId }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [result, setResult] = useState<GameResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -117,12 +118,22 @@ export default function GameLesson({ lesson, orgId, existingProgress }: Props) {
               &nbsp;·&nbsp; Need <span className="text-white font-medium">{result.passScore}</span> to pass
             </p>
           </div>
-          <button
-            onClick={() => { setResult(null); setReloadKey(k => k + 1); }}
-            className="text-sm px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
-          >
-            Play Again
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setResult(null); setReloadKey(k => k + 1); }}
+              className="text-sm px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            >
+              Play Again
+            </button>
+            {result.passed && nextLessonId && (
+              <a
+                href={`/lessons/${nextLessonId}`}
+                className="text-sm px-4 py-2 bg-talab-600 hover:bg-talab-700 text-white rounded-lg transition-colors font-medium"
+              >
+                Continue →
+              </a>
+            )}
+          </div>
         </div>
       )}
     </div>

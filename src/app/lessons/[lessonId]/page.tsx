@@ -87,7 +87,7 @@ export default async function LessonPage({ params }: Props) {
                 nextLessonId={nextLessonId}
               />
             ) : lesson.lesson_type === "game" && lesson.game_path ? (
-              <GameLesson lesson={lesson} orgId={profile?.org_id ?? ""} existingProgress={progress} />
+              <GameLesson lesson={lesson} orgId={profile?.org_id ?? ""} existingProgress={progress} nextLessonId={nextLessonId} />
             ) : (
               <>
                 {lesson.r2_key && <VideoPlayer lessonId={lessonId} r2Key={lesson.r2_key} />}
