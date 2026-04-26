@@ -35,7 +35,7 @@ Per-game checks before marking complete:
 - [ ] 008 - `3d-model-step-7-edges.html` -> `/games/ks2-lab/3d-model-step-7-edges/index.html` - suggested course: KS2 Technology
 - [ ] 009 - `3d-model-step-8-components.html` -> `/games/ks2-lab/3d-model-step-8-components/index.html` - suggested course: KS2 Technology
 - [ ] 010 - `3d-model-step-9-dimensions.html` -> `/games/ks2-lab/3d-model-step-9-dimensions/index.html` - suggested course: KS2 Technology
-- [ ] 011 - `ancient-china-great-wall.html` -> `/games/ks2-lab/ancient-china-great-wall/index.html` - suggested course: KS2 History
+- [x] 011 - `ancient-china-great-wall.html` -> `/games/ks2-lab/ancient-china-great-wall/index.html` - suggested course: KS2 History
 - [ ] 012 - `ancient-egypt-daily-life.html` -> `/games/ks2-lab/ancient-egypt-daily-life/index.html` - suggested course: KS2 History
 - [ ] 013 - `ancient-egypt-pyramids-pharaohs.html` -> `/games/ks2-lab/ancient-egypt-pyramids-pharaohs/index.html` - suggested course: KS2 History
 - [ ] 014 - `ancient-greece-daily-life.html` -> `/games/ks2-lab/ancient-greece-daily-life/index.html` - suggested course: KS2 History
