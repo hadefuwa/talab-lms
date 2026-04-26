@@ -10,7 +10,7 @@ A secure, modern Learning Management System built for homeschool families. Found
 
 ### For Students
 - Browse free and premium courses
-- Watch lessons, read content, and play interactive JavaScript games
+- Watch lessons, read content, play games, and work through interactive block-based lessons
 - Take quizzes with instant scoring and answer explanations
 - View personal progress across all courses
 - Earn a printable completion certificate when a course is finished
@@ -22,7 +22,7 @@ A secure, modern Learning Management System built for homeschool families. Found
 
 ### For the Founder (Admin)
 - Full course and lesson management — create, edit, delete, reorder
-- Three lesson types: **Reading**, **Video** (Cloudflare R2), **Game** (custom JS)
+- Four lesson types: **Reading**, **Video** (Cloudflare R2), **Game** (custom JS), **Interactive** (JSON block lessons)
 - Quiz builder with multiple-choice questions, pass marks, and explanations
 - Free vs. premium course designation — free courses are open to all, premium requires subscription
 - Platform analytics — student counts, active subscriptions, lesson completions, quiz pass rates
@@ -34,13 +34,14 @@ A secure, modern Learning Management System built for homeschool families. Found
 
 | Layer | Technology |
 |---|---|
-| Framework | Next.js 16 (App Router, TypeScript) |
+| Framework | Next.js 15 (App Router, TypeScript, Turbopack) |
 | Styling | Tailwind CSS |
 | Auth | Supabase (Google OAuth) |
 | Database | Supabase / PostgreSQL with Row Level Security |
 | Storage | Cloudflare R2 (videos, PDFs) |
 | Edge streaming | Cloudflare Worker (JWT validation + HTTP 206) |
 | AI assistant | Google Gemini 2.0 Flash (lesson chatbot) |
+| TTS | Browser Web Speech API |
 | Billing | Stripe (subscriptions + webhooks) |
 | Deployment | Vercel |
 
@@ -57,7 +58,7 @@ src/
 │   ├── courses/        # Course detail, quiz player, completion certificate
 │   ├── dashboard/      # Course grid with search and filter
 │   ├── family/         # Family management and student progress views
-│   ├── lessons/        # Lesson viewer (video, reading, game)
+│   ├── lessons/        # Lesson viewer (video, reading, game, interactive)
 │   └── progress/       # Student self-view progress page
 ├── components/         # Shared UI components
 ├── lib/
@@ -65,10 +66,11 @@ src/
 │   ├── stripe.ts       # Stripe client and plan config
 │   └── types.ts        # TypeScript interfaces
 public/
-└── games/
-    └── flappy-bird/    # Example JS game lesson (postMessage scoring)
+├── games/
+│   └── flappy-bird/    # Example JS game lesson (postMessage scoring)
+└── lessons/            # Interactive lesson JSON files
 supabase/
-└── migrations/         # SQL migrations (001–005)
+└── migrations/         # SQL migrations (001–007)
 workers/
 └── gatekeeper/         # Cloudflare Worker for R2 video streaming
 ```
@@ -79,7 +81,7 @@ workers/
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - A [Supabase](https://supabase.com) project
 - A [Google Cloud](https://console.cloud.google.com) OAuth 2.0 Client ID
 - (Optional) Cloudflare account for R2 video storage
@@ -150,13 +152,14 @@ npm run dev
 
 ## Lesson Types
 
-Talab supports three lesson types set when creating a lesson:
+Talab supports four lesson types set when creating a lesson:
 
 | Type | Description |
 |---|---|
-| **Reading** | HTML content rendered in the lesson view |
+| **Reading** | HTML content rendered in the lesson view with a TTS "Read to me" button |
 | **Video** | Streamed from Cloudflare R2 via the Gatekeeper Worker |
 | **Game** | Custom JavaScript game in an iframe with score-based completion |
+| **Interactive** | Block-based lesson with instant feedback, XP, and star ratings — content stored as a JSON file in `public/lessons/` |
 
 ### Adding a custom game
 
@@ -167,6 +170,14 @@ Talab supports three lesson types set when creating a lesson:
    ```
 3. Register it in `src/components/LessonForm.tsx` → `BUILT_IN_GAMES` array
 4. Create a Game lesson in the admin panel and set a pass score
+
+### Adding an interactive lesson
+
+1. Create `public/lessons/your-lesson.json` (see `SETUP.md` for the full block schema)
+2. Push to git — Vercel deploys automatically
+3. In the admin panel, create a lesson with type **Interactive** and enter the filename
+
+Content changes to interactive lessons only require editing the JSON file and pushing — no database update needed.
 
 ---
 
@@ -198,6 +209,16 @@ Then set `GATEKEEPER_WORKER_URL` in your Vercel environment variables.
 
 ---
 
+## Documentation
+
+| File | Contents |
+|---|---|
+| `SETUP.md` | Full setup guide including content authoring for all lesson types |
+| `CLAUDE.md` | Codebase context for Claude Code — architecture, conventions, gotchas |
+| `agents.md` | AI features in the product — Gemini assistant and TTS |
+
+---
+
 ## Deployment
 
 The app is deployed on Vercel. Connect the GitHub repo and add the environment variables from step 2 in the Vercel dashboard. Database migrations are run separately via the Supabase CLI.
@@ -208,5 +229,5 @@ The app is deployed on Vercel. Connect the GitHub repo and add the environment v
 
 - [ ] Stripe billing live (keys pending)
 - [ ] Cloudflare R2 Worker deployed
-- [ ] More custom game lessons
+- [ ] More interactive lessons across all key stages
 - [ ] Email notifications for parents on student activity
