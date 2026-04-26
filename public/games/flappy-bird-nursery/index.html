@@ -7,16 +7,12 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #87ceeb;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+      margin: 0;
       overflow: hidden;
       font-family: system-ui, -apple-system, sans-serif;
       user-select: none;
     }
-    canvas { display: block; cursor: pointer; touch-action: none; }
+    canvas { display: block; cursor: pointer; touch-action: none; width: 100vw; height: 100vh; }
   </style>
 </head>
 <body>
@@ -30,12 +26,13 @@
   const PASS_SCORE = parseInt(params.get('passScore') || '3', 10);
   const LEVEL      = Math.min(3, Math.max(1, parseInt(params.get('level') || '1', 10)));
 
-  const W = Math.min(window.innerWidth, 380);
-  const H = Math.min(window.innerHeight, 570);
+  const W = window.innerWidth;
+  const H = window.innerHeight;
   canvas.width  = W;
   canvas.height = H;
 
-  const sc = W / 380;
+  // Scale gameplay constants so the game feels the same regardless of iframe size
+  const sc = Math.min(W / 380, H / 570);
 
   const CFG = {
     1: { gravity: 0.22, flapVel: -6.5, pipeGap: 215, pipeSpeed: 1.2, pipeEvery: 140,

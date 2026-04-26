@@ -72,7 +72,7 @@ export default function GameLesson({ lesson, orgId, existingProgress }: Props) {
       </div>
 
       {/* Game iframe */}
-      <div className="relative bg-gray-950 rounded-2xl overflow-hidden border border-gray-800" style={{ aspectRatio: "380 / 570" }}>
+      <div className="relative bg-gray-950 rounded-2xl overflow-hidden border border-gray-800 mx-auto w-full max-w-sm" style={{ aspectRatio: "380 / 570" }}>
         <iframe
           key={reloadKey}
           ref={iframeRef}
