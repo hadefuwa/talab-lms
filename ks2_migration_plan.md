@@ -2,140 +2,162 @@
 
 This plan is for AI agents migrating games from the KS2 Lab repo into Talab LMS.
 
-Source repo:
-https://github.com/hadefuwa/ks2-lab
+Source repo: https://github.com/hadefuwa/ks2-lab
 
-Progress checklist:
-`ks2_migration_checklist.md`
+Progress checklist: `ks2_migration_checklist.md`
+
+---
 
 ## Goal
 
-Migrate standalone KS2 Lab HTML games into Talab as local `game` lessons.
+Copy standalone KS2 Lab HTML games into:
 
-Standalone game files should be copied from the source repo:
-
-```txt
-public/html-games/<source-file>.html
 ```
-
-into Talab folders:
-
-```txt
 public/games/ks2-lab/<slug>/index.html
 ```
 
-Talab lesson rows should point to:
+Insert an idempotent Supabase lesson row pointing to:
 
-```txt
+```
 /games/ks2-lab/<slug>/index.html
 ```
 
-## Source Structure Notes
+---
 
-KS2 Lab is a React/Electron app, not only a static HTML lesson hub.
+## Source Structure
 
-Use this order of priority:
+Use this priority order when locating the source file:
 
-1. `public/html-games/` - best source for direct Talab `game` imports.
-2. `html games/` - older or duplicate standalone files; use only when the `public/html-games` version is absent.
-3. `src/data/lessons/year*.js` - React lesson content; migrate later as Talab `content`, `interactive`, or quiz content, not as raw game files.
+1. `public/html-games/<name>.html` — primary source, always prefer this
+2. `html games/<name>.html` — older duplicates, use only if absent from `public/html-games/`
+3. `src/data/lessons/year*.js` — React lesson data, not HTML games, skip for now
 
-## Existing Talab Support
+---
 
-Talab's `GameLesson.tsx` already accepts:
+## Game Risk Tiers
+
+Before starting a game, identify its tier. Higher-risk games need more prep.
+
+| Tier | Games | Risk |
+|---|---|---|
+| **Low** | History quiz games, maths games (fractions, days, place value, measurement) | Self-contained HTML/JS, no heavy deps |
+| **Medium** | Blockly lessons (023–031) | Load Blockly from CDN — test CDN reliability |
+| **High** | 3D model lessons (001–010), resistor, voltage, current | Likely use Three.js and may reference `public/models/` assets from the KS2 Lab repo |
+
+Start with Low tier. Do not migrate High tier games until you have verified their asset dependencies.
+
+---
+
+## Duplicates to Audit First
+
+The following are likely duplicate or draft variants of the same game. Inspect them before migrating — only migrate the best version:
+
+- `ancient-stories.html`, `ancient-stories-full.html`, `ancient-stories-part1.html`, `ancient-stories-part2.html`, `ancient-stories-temp.html` (items 017–021) — pick the most complete one, skip the rest
+
+---
+
+## postMessage Contract
+
+Talab's `GameLesson.tsx` listens for:
 
 ```js
-window.parent.postMessage({ type: "GAME_OVER", score: 1 }, "*");
+window.parent.postMessage({ type: 'GAME_OVER', score: N }, '*');
 ```
 
-It also currently accepts the KS1 legacy completion event:
+KS2 source games use a different event:
 
 ```js
-window.parent.postMessage({ type: "lessonCompleted", lessonId: 1 }, "*");
+window.parent.postMessage({ type: 'html-game-complete', game: '...', score: N }, '*');
 ```
 
-KS2 games may use other event names, for example:
+**Always replace** the completion `postMessage` call in the copied HTML with the `GAME_OVER` contract. Wrap it in `try/catch` so it never throws:
 
 ```js
-window.parent.postMessage({ type: "html-game-complete", game: "fractions", score: stars }, "*");
+try {
+  window.parent.postMessage({ type: 'GAME_OVER', game: '<slug>', score: score }, '*');
+} catch (_) {}
 ```
 
-Before importing a KS2 game, inspect the source for `postMessage`. If it does not send `GAME_OVER`, either:
+If the game has no completion event, add one at the win condition with `score: 1`.
 
-- update the game to send `GAME_OVER`, or
-- extend `GameLesson.tsx` to support that specific legacy event safely.
+---
 
-Preferred final contract:
+## Responsiveness
 
-```js
-window.parent.postMessage({ type: "GAME_OVER", score: score }, "*");
-```
+Source games often have fixed pixel widths (e.g. `width: 500px`). Always apply these CSS fixes when copying:
+
+1. Add `<meta name="viewport" content="width=device-width, initial-scale=1">` if missing.
+2. Replace fixed widths like `width: 500px` with `width: min(500px, 100%)`.
+3. Replace fixed image/SVG sizes with `min()` equivalents or `max-width: 100%`.
+4. Add `padding: 12px; box-sizing: border-box;` to the body so content doesn't touch screen edges.
+5. Use `clamp()` for font sizes where practical.
+
+All KS2 games render in the wide iframe layout (`max-w-5xl`, 16:10 aspect ratio) — `GameLesson.tsx` already handles this for any path containing `/ks2-lab/`.
+
+---
 
 ## Migration Steps Per Game
 
-1. Open `ks2_migration_checklist.md` and pick the next unchecked game.
-2. Create a folder:
+1. Open `ks2_migration_checklist.md` and pick the next unchecked **Low tier** game.
 
-   ```txt
+2. Fetch the source HTML from the repo:
+   ```bash
+   gh api repos/hadefuwa/ks2-lab/contents/public/html-games/<name>.html --jq '.content' | base64 -d
+   ```
+
+3. Inspect for:
+   - `postMessage` calls — note the event type and score variable name
+   - External dependencies: CDN URLs, `fetch(...)`, ES module imports, local asset paths
+   - Fixed pixel widths that need responsive fixes
+
+4. Create the destination folder:
+   ```
    public/games/ks2-lab/<slug>/
    ```
 
-3. Copy the source HTML to:
+5. Write the HTML to `public/games/ks2-lab/<slug>/index.html` with these changes applied:
+   - Add viewport meta tag
+   - Responsive CSS fixes
+   - Replace completion event with `GAME_OVER`
 
-   ```txt
-   public/games/ks2-lab/<slug>/index.html
-   ```
+6. Vendor any local assets (images, audio, JS) into the same folder when practical. Keep CDN imports only if the CDN is reliable (cdnjs, unpkg, jsdelivr are fine; avoid obscure or self-hosted URLs).
 
-4. Inspect the HTML for dependencies:
+7. Create the migration file at `supabase/migrations/<NNN>_ks2_lab_<slug>.sql` using the idempotent pattern below.
 
-   - `https://...` CDN imports
-   - local images/audio/models
-   - `public/models`
-   - `public/blockly-games`
-   - `fetch(...)`
-   - ES module imports
-   - import maps
+8. Choose the correct Talab course by title:
+   - Technology, circuits, 3D modelling, Blockly → `KS2 Technology`
+   - Fractions, place value, measurement, days/time → `KS2 Maths`
+   - Ancient history, dinosaurs, medieval, modern history, world wars → `KS2 History`
+   - Reading, writing, language games → `KS2 English`
 
-5. Vendor important local assets into the same game folder when practical.
-6. Keep CDN dependencies only when they are acceptable for production reliability.
-7. Ensure completion sends `GAME_OVER`.
-8. If the game has stars or score, pass that score. If it only has completion, use score `1`.
-9. Add an idempotent Supabase migration that inserts the Talab lesson row.
-10. Choose the right Talab course:
+9. Set `game_pass_score`:
+   - Completion-only (no score): `1`
+   - Star/score out of 100: `60` (silver)
+   - Quiz-style with a clear pass mark baked in: use that mark
+   - Blockly/code challenges: `1` (just complete it)
 
-    - Technology, circuits, 3D modelling, Blockly -> `KS2 Technology`
-    - Fractions, place value, measurement, days/time -> `KS2 Maths`
-    - Ancient history, dinosaurs, medieval, modern history, world wars -> `KS2 History`
-    - Reading/writing/language games, if found -> `KS2 English`
-
-11. Set `lesson_type = 'game'`.
-12. Set `game_path = '/games/ks2-lab/<slug>/index.html'`.
-13. Set `game_pass_score` based on the game:
-
-    - Completion-only games: `1`
-    - Star games: usually `1` to pass, or `3` if mastery is required
-    - Score games: choose a sensible pass score from the game logic
-
-14. Run:
-
+10. Run the build:
     ```bash
     npm run build
     ```
 
-15. Apply migrations:
-
+11. Apply the migration:
     ```bash
     npx supabase db push --linked
     ```
 
-16. Verify the lesson row exists.
-17. Test the game inside Talab's iframe.
-18. Mark the checklist item complete.
-19. Commit and push.
+12. Verify the row:
+    ```bash
+    npx supabase db query --linked "select l.title, l.game_path, c.title as course from public.lessons l join public.courses c on c.id = l.course_id where l.game_path like '/games/ks2-lab/%' order by c.title, l.position;"
+    ```
+
+13. Mark the checklist item complete, commit, and push.
+
+---
 
 ## SQL Migration Pattern
 
-Use one numbered migration per batch, or one per game if the migration is risky. Keep every migration idempotent.
+One migration file per game. Always idempotent — safe to re-run.
 
 ```sql
 do $$
@@ -146,9 +168,7 @@ begin
   select id
   into target_course_id
   from public.courses
-  where title = 'KS2 Technology'
-     or (key_stage = 'ks2' and subject_category = 'Technology')
-  order by created_at
+  where title = 'KS2 Maths'   -- change to correct course title
   limit 1;
 
   if target_course_id is null then
@@ -156,9 +176,8 @@ begin
   end if;
 
   if exists (
-    select 1
-    from public.lessons
-    where game_path = '/games/ks2-lab/example-slug/index.html'
+    select 1 from public.lessons
+    where game_path = '/games/ks2-lab/<slug>/index.html'
   ) then
     return;
   end if;
@@ -169,67 +188,46 @@ begin
   where course_id = target_course_id;
 
   insert into public.lessons (
-    course_id,
-    title,
-    r2_key,
-    content_body,
-    position,
-    duration_seconds,
-    lesson_type,
-    content_path,
-    game_path,
-    game_pass_score
+    course_id, title, r2_key, content_body, position, duration_seconds,
+    lesson_type, content_path, game_path, game_pass_score
   )
   values (
     target_course_id,
-    'KS2 Lab: Example Title',
-    null,
-    null,
+    'KS2 Lab: <Game Title>',
+    null, null,
     next_position,
     600,
     'game',
     null,
-    '/games/ks2-lab/example-slug/index.html',
-    1
+    '/games/ks2-lab/<slug>/index.html',
+    1    -- adjust pass score
   );
 end $$;
 ```
 
-## Completion Event Audit
+Available course titles (confirmed in DB):
+- `KS2 Maths`
+- `KS2 English`
+- `KS2 History`
+- `KS2 Technology`
 
-Before bulk migration, scan each source HTML for completion events:
+---
 
-```powershell
-$files = Invoke-RestMethod 'https://api.github.com/repos/hadefuwa/ks2-lab/contents/public/html-games?ref=main'
-foreach ($file in $files) {
-  $content = (Invoke-WebRequest -UseBasicParsing $file.download_url).Content
-  $matches = [regex]::Matches($content, 'postMessage\([^\n]+')
-  "$($file.name): $($matches.Value -join ' | ')"
-}
-```
+## What NOT to Migrate
 
-If a game has no completion event, add one at the win condition.
+- The React/Electron app shell itself
+- Zustand state, Electron IPC, or app-wide KS2 Lab state management
+- `src/data/lessons/year*.js` React lesson data (different migration path, not HTML games)
+- Duplicate draft variants (e.g. ancient-stories-temp.html)
 
-## Important Checks
-
-- Do not migrate the React/Electron shell itself into Talab.
-- Do not import Zustand, Electron, or app-wide KS2 Lab state management.
-- Keep every standalone game self-contained under `public/games/ks2-lab/<slug>/`.
-- Test inside Talab's iframe, not only by opening the HTML directly.
-- Watch for games that require large desktop layouts. If needed, extend `GameLesson.tsx` wide-frame detection for `/ks2-lab/`.
-- Watch for Three.js games that import models from `public/models`.
-- Watch for Blockly games that rely on `public/blockly-games` or CDN Blockly.
-- Avoid placing Technology games in Maths just because they contain numbers.
+---
 
 ## Verification Commands
 
 ```bash
 npm run build
 npx supabase db push --linked
-```
 
-Optional row check:
-
-```bash
-npx supabase db query --linked "select l.title, l.game_path, c.title as course_title from public.lessons l join public.courses c on c.id = l.course_id where l.game_path like '/games/ks2-lab/%' order by c.title, l.position;"
+# Check all migrated KS2 rows
+npx supabase db query --linked "select l.title, l.game_path, c.title as course from public.lessons l join public.courses c on c.id = l.course_id where l.game_path like '/games/ks2-lab/%' order by c.title, l.position;"
 ```
