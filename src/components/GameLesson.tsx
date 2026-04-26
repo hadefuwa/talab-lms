@@ -46,7 +46,8 @@ export default function GameLesson({ lesson, orgId, existingProgress }: Props) {
     return () => window.removeEventListener("message", onMessage);
   }, [lesson.id, orgId]);
 
-  const gameSrc = `${lesson.game_path}?passScore=${lesson.game_pass_score ?? 5}&t=${reloadKey}`;
+  const sep = lesson.game_path?.includes('?') ? '&' : '?';
+  const gameSrc = `${lesson.game_path}${sep}passScore=${lesson.game_pass_score ?? 5}&t=${reloadKey}`;
 
   return (
     <div className="space-y-4">

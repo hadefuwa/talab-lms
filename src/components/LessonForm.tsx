@@ -11,7 +11,10 @@ interface Props {
 }
 
 const BUILT_IN_GAMES = [
-  { label: "Flappy Bird", path: "/games/flappy-bird/index.html" },
+  { label: "Flappy Bird (Original)", path: "/games/flappy-bird/index.html" },
+  { label: "Flappy Bird Nursery — Level 1 (Easy, pass 3)", path: "/games/flappy-bird-nursery/index.html?level=1" },
+  { label: "Flappy Bird Nursery — Level 2 (Medium, pass 5)", path: "/games/flappy-bird-nursery/index.html?level=2" },
+  { label: "Flappy Bird Nursery — Level 3 (Hard, pass 8)", path: "/games/flappy-bird-nursery/index.html?level=3" },
 ];
 
 export default function LessonForm({ courseId, lesson }: Props) {
