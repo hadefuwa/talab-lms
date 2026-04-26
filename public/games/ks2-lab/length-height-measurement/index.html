@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Length and Height - Reception Fun Lesson</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+            margin: 0;
+            padding: 20px;
+            height: 100vh; overflow-y: auto;
+            animation: bgAnimation 10s infinite alternate;
+        }
+        
+        @keyframes bgAnimation {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            z-index: 0;
+        }
+        
+        .container > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        h1 {
+            color: #ff6b6b;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: titleBounce 2s infinite alternate;
+        }
+        
+        @keyframes titleBounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-5px); }
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #4ecdc4;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        
+        .activity-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #4ecdc4;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .activity-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .activity-title {
+            color: #45b7d1;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        .instructions {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .comparison-box {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 250px;
+            margin: 20px 0;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .object {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s, opacity 0.3s;
+            position: relative;
+        }
+        
+        .object:hover {
+            transform: scale(1.15);
+            z-index: 10;
+        }
+        
+        .object.selected {
+            box-shadow: 0 0 20px #4ecdc4;
+            border-radius: 5px;
+        }
+        
+        .object-shape {
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .object-label {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        
+        .button {
+            background: #4ecdc4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .button:hover {
+            background: #45b7d1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .button:active {
+            transform: translateY(1px);
+        }
+        
+        .game-area {
+            text-align: center;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .feedback {
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .correct {
+            background: #d4edda;
+            color: #155724;
+            animation: celebrate 0.5s 3;
+        }
+        
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .incorrect {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .measurement-units {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .unit {
+            width: 50px;
+            height: 20px;
+            background: #ff6b6b;
+            border: 1px solid #ddd;
+        }
+        
+        .unit-hand {
+            width: 30px;
+            height: 30px;
+            background: #9370DB;
+            border-radius: 50%;
+        }
+        
+        .unit-foot {
+            width: 60px;
+            height: 25px;
+            background: #32CD32;
+            border-radius: 10px;
+        }
+        
+        .unit-pencil {
+            width: 10px;
+            height: 50px;
+            background: #FFD700;
+        }
+        
+        .difficulty-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .difficulty-btn {
+            padding: 8px 15px;
+            font-size: 0.9em;
+        }
+        
+        .current-difficulty {
+            font-weight: bold;
+            color: #45b7d1;
+        }
+        
+        .sound-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #ccc;
+        }
+        
+        .sound-icon.active {
+            color: #4ecdc4;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="sound-icon" id="soundIcon" onclick="toggleSound()">🔇</div>
+    
+    <div class="container">
+        <h1>📏 Measuring Length & Height 📏</h1>
+        <div class="subtitle">Fun with sizes and comparisons!</div>
+        
+        <div class="activity-card">
+            <div class="activity-title">What is Length and Height?</div>
+            <div class="instructions">
+                <p><strong>Length</strong> is how long something is from one end to the other.</p>
+                <p><strong>Height</strong> is how tall something is from bottom to top.</p>
+                <p>Let's explore by comparing different objects!</p>
+            </div>
+            
+            <div class="comparison-box" id="comparisonBox">
+                <div class="object" onclick="selectObject('pencil', 80)">
+                    <div class="object-shape" style="height: 80px; width: 10px; background: #8B4513;"></div>
+                    <div class="object-label">Pencil</div>
+                </div>
+                <div class="object" onclick="selectObject('book', 120)">
+                    <div class="object-shape" style="height: 120px; width: 80px; background: #FF6347;"></div>
+                    <div class="object-label">Book</div>
+                </div>
+                <div class="object" onclick="selectObject('chair', 180)">
+                    <div class="object-shape" style="height: 180px; width: 60px; background: #228B22;"></div>
+                    <div class="object-label">Chair</div>
+                </div>
+                <div class="object" onclick="selectObject('tree', 200)">
+                    <div class="object-shape" style="height: 200px; width: 40px; background: #8FBC8F;"></div>
+                    <div class="object-label">Tree</div>
+                </div>
+                <div class="object" onclick="selectObject('ruler', 150)">
+                    <div class="object-shape" style="height: 150px; width: 5px; background: #1E90FF;"></div>
+                    <div class="object-label">Ruler</div>
+                </div>
+                <div class="object" onclick="selectObject('table', 100)">
+                    <div class="object-shape" style="height: 100px; width: 100px; background: #D2691E;"></div>
+                    <div class="object-label">Table</div>
+                </div>
+                <div class="object" onclick="selectObject('person', 160)">
+                    <div class="object-shape" style="height: 160px; width: 30px; background: #FFB6C1;"></div>
+                    <div class="object-label">Person</div>
+                </div>
+                <div class="object" onclick="selectObject('car', 60)">
+                    <div class="object-shape" style="height: 60px; width: 120px; background: #708090;"></div>
+                    <div class="object-label">Car</div>
+                </div>
+            </div>
+            
+            <div id="selectionFeedback"></div>
+        </div>
+        
+        <div class="activity-card">
+            <div class="activity-title">Compare Objects</div>
+            <div class="instructions">
+                <p>Click on two objects to compare their heights!</p>
+            </div>
+            
+            <button class="button" onclick="compareObjects()">Compare Selected Objects</button>
+            <div id="compareResult"></div>
+        </div>
+        
+        <div class="activity-card">
+            <div class="activity-title">Measurement Units</div>
+            <div class="instructions">
+                <p>We can measure length and height using different units:</p>
+                <div class="measurement-units">
+                    <div class="unit unit-hand" title="Hand span"></div>
+                    <div class="unit unit-foot" title="Foot length"></div>
+                    <div class="unit unit-pencil" title="Pencil length"></div>
+                    <div class="unit" style="background: #4169E1;" title="Ruler/cm"></div>
+                </div>
+                <p>Try measuring objects around you using your hand span or foot length!</p>
+            </div>
+        </div>
+        
+        <div class="activity-card">
+            <div class="activity-title">Difficulty Level</div>
+            <div class="instructions">
+                <p>Adjust the difficulty level for the games:</p>
+                <div class="difficulty-controls">
+                    <span class="current-difficulty" id="difficultyDisplay">Easy</span>
+                    <button class="button difficulty-btn" onclick="setDifficulty('easy')">Easy</button>
+                    <button class="button difficulty-btn" onclick="setDifficulty('medium')">Medium</button>
+                    <button class="button difficulty-btn" onclick="setDifficulty('hard')">Hard</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="activity-card">
+            <div class="activity-title">Measurement Game</div>
+            <div class="instructions">
+                <p>Guess which object is taller or longer!</p>
+            </div>
+            
+            <div class="game-area">
+                <div id="gameQuestion">Which object is taller?</div>
+                <div id="gameComparison">
+                    <!-- Game objects will appear here -->
+                </div>
+                <div id="gameButtons">
+                    <!-- Buttons will appear here -->
+                </div>
+                <div id="gameFeedback"></div>
+            </div>
+            
+            <button class="button" onclick="startGame()">Start Game</button>
+        </div>
+        
+        <div class="activity-card">
+            <div class="activity-title">Real Life Comparisons</div>
+            <div class="instructions">
+                <p>Find these objects around your home and compare them:</p>
+                <ul>
+                    <li>Your pencil vs your ruler</li>
+                    <li>Your chair vs your table</li>
+                    <li>You vs your sibling</li>
+                    <li>Your toy car vs your toy truck</li>
+                    <li>Your bed vs your desk</li>
+                    <li>Your shoes vs your boots</li>
+                </ul>
+                <button class="button" onclick="alert('Go find and compare these objects around your home!')">Try It!</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="correctSound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
+    </audio>
+    <audio id="incorrectSound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let selectedObjects = [];
+        let soundEnabled = false;
+        let difficulty = 'easy';
+        let objects = [
+            {name: 'Pencil', height: 80, color: '#8B4513', shape: 'thin'},
+            {name: 'Book', height: 120, color: '#FF6347', shape: 'wide'},
+            {name: 'Chair', height: 180, color: '#228B22', shape: 'rect'},
+            {name: 'Tree', height: 200, color: '#8FBC8F', shape: 'slim'},
+            {name: 'Ruler', height: 150, color: '#1E90FF', shape: 'thin'},
+            {name: 'Table', height: 100, color: '#D2691E', shape: 'wide'},
+            {name: 'Person', height: 160, color: '#FFB6C1', shape: 'thin'},
+            {name: 'Car', height: 60, color: '#708090', shape: 'long'},
+            {name: 'Giraffe', height: 180, color: '#FFD700', shape: 'thin'},
+            {name: 'Elephant', height: 150, color: '#A9A9A9', shape: 'wide'},
+            {name: 'Dog', height: 60, color: '#8B4513', shape: 'long'},
+            {name: 'Cat', height: 40, color: '#FF69B4', shape: 'long'},
+            {name: 'House', height: 220, color: '#CD853F', shape: 'rect'},
+            {name: 'Bird', height: 30, color: '#FF4500', shape: 'thin'},
+            {name: 'Snake', height: 20, color: '#32CD32', shape: 'long'},
+            {name: 'Ladder', height: 190, color: '#DAA520', shape: 'thin'}
+        ];
+        
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            icon.textContent = soundEnabled ? '🔊' : '🔇';
+        }
+        
+        function playSound(type) {
+            if (!soundEnabled) return;
+            
+            const audio = document.getElementById(type + 'Sound');
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(e => console.log("Audio play failed:", e));
+            }
+        }
+        
+        function selectObject(name, height) {
+            if (selectedObjects.length >= 2) {
+                selectedObjects = [];
+                // Remove selected class from all objects
+                document.querySelectorAll('.object').forEach(obj => {
+                    obj.classList.remove('selected');
+                });
+            }
+            
+            selectedObjects.push({name, height});
+            
+            // Add selected class to clicked object
+            event.currentTarget.classList.add('selected');
+            
+            const feedback = document.getElementById('selectionFeedback');
+            feedback.innerHTML = `<div class="feedback">Selected: ${name} (${height}px)</div>`;
+            
+            if (selectedObjects.length === 2) {
+                setTimeout(() => {
+                    compareObjects();
+                }, 500);
+            }
+        }
+        
+        function compareObjects() {
+            if (selectedObjects.length !== 2) {
+                alert('Please select two objects to compare!');
+                return;
+            }
+            
+            const obj1 = selectedObjects[0];
+            const obj2 = selectedObjects[1];
+            
+            let result = '';
+            if (obj1.height > obj2.height) {
+                result = `${obj1.name} is taller than ${obj2.name}`;
+            } else if (obj1.height < obj2.height) {
+                result = `${obj2.name} is taller than ${obj1.name}`;
+            } else {
+                result = `${obj1.name} and ${obj2.name} are the same height`;
+            }
+            
+            document.getElementById('compareResult').innerHTML = 
+                `<div class="feedback">${result}</div>`;
+                
+            // Play sound based on result
+            playSound(obj1.height !== obj2.height ? 'correct' : 'correct'); // Both cases are positive
+            
+            // Reset selections after comparison
+            setTimeout(() => {
+                selectedObjects = [];
+                document.querySelectorAll('.object').forEach(obj => {
+                    obj.classList.remove('selected');
+                });
+                document.getElementById('selectionFeedback').innerHTML = '';
+            }, 2000);
+        }
+        
+        function setDifficulty(level) {
+            difficulty = level;
+            document.getElementById('difficultyDisplay').textContent = 
+                level.charAt(0).toUpperCase() + level.slice(1);
+        }
+        
+        function getGameObjects() {
+            // Different sets of objects based on difficulty
+            switch(difficulty) {
+                case 'easy':
+                    return [
+                        {name: 'Giraffe', height: 180, color: '#FFD700', shape: 'thin'},
+                        {name: 'Elephant', height: 150, color: '#A9A9A9', shape: 'wide'},
+                        {name: 'Dog', height: 60, color: '#8B4513', shape: 'long'},
+                        {name: 'Cat', height: 40, color: '#FF69B4', shape: 'long'}
+                    ];
+                case 'medium':
+                    return [
+                        {name: 'House', height: 220, color: '#CD853F', shape: 'rect'},
+                        {name: 'Tree', height: 200, color: '#8FBC8F', shape: 'slim'},
+                        {name: 'Person', height: 160, color: '#FFB6C1', shape: 'thin'},
+                        {name: 'Chair', height: 180, color: '#228B22', shape: 'rect'}
+                    ];
+                case 'hard':
+                    return [
+                        {name: 'Bird', height: 30, color: '#FF4500', shape: 'thin'},
+                        {name: 'Snake', height: 20, color: '#32CD32', shape: 'long'},
+                        {name: 'Pencil', height: 80, color: '#8B4513', shape: 'thin'},
+                        {name: 'Ruler', height: 150, color: '#1E90FF', shape: 'thin'}
+                    ];
+                default:
+                    return [
+                        {name: 'Giraffe', height: 180, color: '#FFD700', shape: 'thin'},
+                        {name: 'Elephant', height: 150, color: '#A9A9A9', shape: 'wide'},
+                        {name: 'Dog', height: 60, color: '#8B4513', shape: 'long'},
+                        {name: 'Cat', height: 40, color: '#FF69B4', shape: 'long'}
+                    ];
+            }
+        }
+        
+        function startGame() {
+            const gameObjects = getGameObjects();
+            
+            // Randomly select two objects
+            const shuffled = [...gameObjects].sort(() => 0.5 - Math.random());
+            const [obj1, obj2] = shuffled.slice(0, 2);
+            
+            document.getElementById('gameQuestion').textContent = 
+                `Which is taller?`;
+                
+            document.getElementById('gameComparison').innerHTML = `
+                <div class="object">
+                    <div class="object-shape" style="height: ${obj1.height}px; width: ${obj1.shape === 'wide' ? 80 : obj1.shape === 'long' ? 100 : 50}px; background: ${obj1.color}; border-radius: ${obj1.shape === 'round' ? '50%' : '5px'};"></div>
+                    <div class="object-label">${obj1.name}</div>
+                </div>
+                <div class="object">
+                    <div class="object-shape" style="height: ${obj2.height}px; width: ${obj2.shape === 'wide' ? 80 : obj2.shape === 'long' ? 100 : 50}px; background: ${obj2.color}; border-radius: ${obj2.shape === 'round' ? '50%' : '5px'};"></div>
+                    <div class="object-label">${obj2.name}</div>
+                </div>
+            `;
+            
+            document.getElementById('gameButtons').innerHTML = `
+                <button class="button" onclick="checkAnswer('${obj1.name}', '${obj2.name}', ${obj1.height}, ${obj2.height})">${obj1.name}</button>
+                <button class="button" onclick="checkAnswer('${obj2.name}', '${obj1.name}', ${obj2.height}, ${obj1.height})">${obj2.name}</button>
+            `;
+        }
+        
+        function checkAnswer(selected, other, selectedHeight, otherHeight) {
+            const feedback = document.getElementById('gameFeedback');
+            if (selectedHeight > otherHeight) {
+                feedback.innerHTML = '<div class="feedback correct">Correct! Great job! 🎉</div>';
+                playSound('correct');
+                createConfetti();
+                
+                // Send message to parent window to signal completion after a delay
+                setTimeout(() => {
+                    window.parent.postMessage({
+                        type: 'GAME_OVER',
+                        game: 'length-height-measurement', score: 1
+                    }, '*');
+                }, 1500);
+            } else {
+                feedback.innerHTML = '<div class="feedback incorrect">Try again! Remember, the taller object reaches higher.</div>';
+                playSound('incorrect');
+            }
+        }
+        
+        function createConfetti() {
+            const container = document.querySelector('.container');
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-10px';
+                confetti.style.backgroundColor = getRandomColor();
+                confetti.style.opacity = '1';
+                container.appendChild(confetti);
+                
+                // Animate confetti falling
+                const animation = confetti.animate([
+                    { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+                    { transform: `translateY(${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+                ], {
+                    duration: Math.random() * 3000 + 2000,
+                    easing: 'cubic-bezier(0.1, 0.8, 0.2, 1)'
+                });
+                
+                animation.onfinish = () => confetti.remove();
+            }
+        }
+        
+        function getRandomColor() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+    </script>
+</body>
+</html>

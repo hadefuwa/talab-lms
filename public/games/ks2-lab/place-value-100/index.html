@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Place Value Power!</title>
+    <style>
+        body { height: 100vh; overflow: hidden; font-family: 'Comic Sans MS', cursive, sans-serif; text-align: center; background-color: #f0f8ff; color: #333; }
+        #game-container { max-width: 600px; margin: 20px auto; padding: 20px; background: white; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 4px solid #4caf50; }
+        .blocks-area { display: flex; justify-content: center; align-items: flex-end; gap: 20px; min-height: 260px; margin-bottom: 20px; padding: 10px; border: 2px dashed #ccc; }
+        .tens-column, .ones-column { display: flex; flex-wrap: wrap-reverse; gap: 4px; width: 120px; align-content: flex-start; }
+        .ten-rod { width: 26px; height: 200px; background-color: #ff5722; border: 2px solid #bf360c; border-radius: 6px; position: relative; }
+        .one-cube { width: 26px; height: 26px; background-color: #ffeb3b; border: 2px solid #fbc02d; border-radius: 6px; }
+        .input-area { font-size: 24px; margin: 20px; }
+        input { font-size: 24px; width: 60px; text-align: center; border: 3px solid #4caf50; border-radius: 10px; }
+        button { font-size: 20px; padding: 10px 20px; cursor: pointer; background-color: #4caf50; color: white; border: none; border-radius: 10px; transition: 0.2s; }
+        button:hover { background-color: #45a049; transform: scale(1.1); }
+        #feedback { height: 30px; margin-top: 15px; font-weight: bold; font-size: 22px; }
+        .label { font-size: 18px; color: #666; font-weight: bold; }
+        #progress { margin-top: 15px; font-size: 18px; }
+        #medal-message { margin-top: 20px; padding: 15px; font-size: 24px; font-weight: bold; display: none; }
+        .platinum { background-color: #E5E4E2; color: #000; }
+        .gold { background-color: #FFD700; color: #000; }
+        .silver { background-color: #C0C0C0; color: #000; }
+        .bronze { background-color: #CD7F32; color: #FFF; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1>Place Value Power! ⚡</h1>
+    <p>What number is shown?</p>
+    <p style="margin-top: -6px; color: #666; font-size: 16px;">Each tall rod = 10. Each small cube = 1.</p>
+
+    <div class="blocks-area">
+        <div>
+            <div id="tens-container" class="tens-column"></div>
+            <div class="label">Tens</div>
+        </div>
+        <div>
+            <div id="ones-container" class="ones-column"></div>
+            <div class="label">Ones</div>
+        </div>
+    </div>
+
+    <div class="input-area">
+        <label for="guess">My Answer: </label>
+        <input type="number" id="guess" min="1" max="30">
+        <button onclick="checkAnswer()">Check</button>
+    </div>
+
+    <div id="feedback"></div>
+    <div id="progress">Score: <span id="score">0</span> | Correct: <span id="correct">0</span>/<span id="total">0</span></div>
+    <div id="medal-message"></div>
+    <button onclick="newRound()" style="margin-top:20px; background-color: #2196f3;">New Number</button>
+</div>
+
+<script>
+    let currentNumber = 0;
+    let score = 0;
+    let correctAnswers = 0;
+    let totalAttempts = 0;
+    const targetRounds = 5; // Number of rounds to complete the game
+
+    const ttsDelayMs = 200;
+
+    function speakTts(text, options = {}) {
+        if (!text) return;
+        window.parent.postMessage({
+            type: 'html-game-tts',
+            text,
+            rate: options.rate || 0.8,
+            pitch: options.pitch || 1.1,
+            volume: options.volume || 1.0
+        }, '*');
+    }
+
+    function newRound() {
+        document.getElementById('guess').value = '';
+        document.getElementById('feedback').textContent = '';
+        currentNumber = Math.floor(Math.random() * 30) + 1;
+
+        const tens = Math.floor(currentNumber / 10);
+        const ones = currentNumber % 10;
+
+        renderBlocks('tens-container', tens, 'ten-rod');
+        renderBlocks('ones-container', ones, 'one-cube');
+    }
+
+    function renderBlocks(containerId, count, className) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+            const div = document.createElement('div');
+            div.className = className;
+            // Add segments to the tens rod to show it's made of 10
+            if (className === 'ten-rod') {
+                div.style.backgroundImage = "repeating-linear-gradient(to bottom, transparent, transparent 18px, #bf360c 18px, #bf360c 20px)";
+            }
+            container.appendChild(div);
+        }
+    }
+
+    function checkAnswer() {
+        const userGuess = parseInt(document.getElementById('guess').value);
+        const feedback = document.getElementById('feedback');
+        totalAttempts++;
+
+        if (isNaN(userGuess) || userGuess < 1 || userGuess > 30) {
+            feedback.style.color = "#f44336";
+            feedback.textContent = "Enter a number from 1 to 30.";
+            speakTts('Please enter a number from one to thirty.', { rate: 0.9 });
+            return;
+        }
+
+        if (userGuess === currentNumber) {
+            score += 10;
+            correctAnswers++;
+            feedback.style.color = "#4caf50";
+            feedback.textContent = "⭐ Great Job! That's correct! ⭐";
+        } else {
+            feedback.style.color = "#f44336";
+            feedback.textContent = "Try again! Count the blocks.";
+            speakTts('Try again. Count the blocks.', { rate: 0.9 });
+        }
+
+        // Update progress display
+        document.getElementById('score').textContent = score;
+        document.getElementById('correct').textContent = correctAnswers;
+        document.getElementById('total').textContent = totalAttempts;
+
+        // Check if target rounds reached
+        if (totalAttempts >= targetRounds) {
+            awardMedal();
+        } else {
+            // Move to next round after a short delay
+            setTimeout(newRound, 1500);
+        }
+    }
+
+    function awardMedal() {
+        // Calculate accuracy
+        const accuracy = (correctAnswers / totalAttempts) * 100;
+        const medalMessage = document.getElementById('medal-message');
+
+        // Determine medal based on accuracy
+        let medalType, medalName, message;
+        if (accuracy >= 90) {
+            medalType = 'platinum';
+            medalName = 'PLATINUM';
+            message = '🏆 PLATINUM MEDAL! Outstanding work! 🏆';
+        } else if (accuracy >= 80) {
+            medalType = 'gold';
+            medalName = 'GOLD';
+            message = '🥇 GOLD MEDAL! Excellent job! 🥇';
+        } else if (accuracy >= 70) {
+            medalType = 'silver';
+            medalName = 'SILVER';
+            message = '🥈 SILVER MEDAL! Well done! 🥈';
+        } else if (accuracy >= 60) {
+            medalType = 'bronze';
+            medalName = 'BRONZE';
+            message = '🥉 BRONZE MEDAL! Good effort! 🥉';
+        } else {
+            medalType = 'bronze';
+            medalName = 'BRONZE';
+            message = '🥉 BRONZE MEDAL! Keep practicing! 🥉';
+        }
+
+        // Show medal message
+        medalMessage.textContent = message;
+        medalMessage.className = medalType;
+        medalMessage.style.display = 'block';
+
+        // Send completion message to parent app with medal info
+        window.parent.postMessage({
+            type: 'GAME_OVER', game: 'place-value-100',
+            score: score,
+        }, '*');
+    }
+
+    // Start the first round
+    newRound();
+    setTimeout(() => {
+        speakTts('Welcome to Place Value Power! Count the tens and ones blocks.');
+    }, 400);
+</script>
+
+</body>
+</html>
