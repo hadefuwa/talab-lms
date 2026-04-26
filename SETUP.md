@@ -88,6 +88,147 @@ Add the same environment variables in Vercel's dashboard under **Settings → En
 
 ---
 
+## 5. Adding Content
+
+All lesson content is managed through the admin UI at `/admin/lessons/<id>/edit` (founder role only). There are four lesson types, each suited to different content.
+
+---
+
+### 📄 Reading (type: `content`)
+
+Plain or rich-text lessons. Rendered as HTML in the lesson page.
+
+**How to add:**
+1. In the admin lesson form, select **Reading**.
+2. Paste or write HTML in the **Lesson Content** field.
+3. Save. Live immediately.
+
+**When to use:** Text explanations, vocabulary lists, reference material.
+
+---
+
+### 🎬 Video (type: `video`)
+
+Streamed from Cloudflare R2 through the Gatekeeper Worker. Optionally includes reading notes below the video.
+
+**How to add:**
+1. Upload your video to R2 at a path like `videos/ks2-maths/fractions-intro.mp4`.
+2. In the admin form, select **Video**.
+3. Enter the R2 key (e.g. `videos/ks2-maths/fractions-intro.mp4`).
+4. Optionally add HTML notes in the **Lesson Content** field — these appear below the player.
+5. Save.
+
+**When to use:** Recorded teaching, demonstrations, story-time content.
+
+---
+
+### 🎮 Game (type: `game`)
+
+A self-contained HTML game loaded in a sandboxed iframe. The game communicates its score back via `postMessage`.
+
+**How to add:**
+1. Place your game files in `public/games/<game-name>/` (e.g. `public/games/flappy-bird/index.html`).
+2. Register the game in `src/components/LessonForm.tsx` in the `BUILT_IN_GAMES` array:
+   ```ts
+   { label: "My Game", path: "/games/my-game/index.html" }
+   ```
+3. In the admin form, select **Game**, pick your game, and set a pass score.
+4. Push to git. Vercel deploys automatically.
+
+**Game API — postMessage contract:**
+When the game ends, it must post this message to the parent window:
+```js
+window.parent.postMessage({ type: "GAME_OVER", score: 7 }, "*");
+```
+The LMS receives this, saves the score to Supabase, and marks the lesson complete if `score >= pass_score`.
+
+**When to use:** Engagement exercises, timed challenges, reward activities.
+
+---
+
+### 🧩 Interactive (type: `interactive`)
+
+Block-based interactive lessons with instant feedback, XP, and star ratings. Content lives as a JSON file in the repo — **no database updates needed for content changes**.
+
+**How to add:**
+1. Create a JSON file in `public/lessons/`, e.g. `public/lessons/ks1-place-value.json`.
+2. In the admin form, select **Interactive** and enter the filename (`ks1-place-value.json`).
+3. Push to git. Vercel deploys and the lesson is live.
+
+**To update content later:** Edit the JSON file and push. No Supabase changes needed.
+
+**JSON structure:**
+```json
+{
+  "version": 1,
+  "xp_reward": 50,
+  "blocks": [ ... ]
+}
+```
+
+**Available block types:**
+
+| Type | Purpose | Required fields |
+|---|---|---|
+| `explanation` | Title + body text, optional emoji | `title`, `body`, `emoji?` |
+| `worked_example` | Step-by-step reveal | `title`, `steps: string[]` |
+| `multiple_choice` | Tap one option | `question`, `options: string[]`, `correct: number (0-based index)`, `hint?` |
+| `fill_blank` | Type an answer into an inline blank | `question`, `template` (use `___` for the blank), `answer`, `hint?` |
+| `celebration` | Final screen — triggers progress save | `message` |
+
+> **Nursery / KS1 note:** Avoid `fill_blank` for young children — they cannot type. Use `multiple_choice` with large emoji-based options instead.
+
+**Example — nursery counting lesson:**
+```json
+{
+  "version": 1,
+  "xp_reward": 50,
+  "blocks": [
+    {
+      "type": "explanation",
+      "emoji": "🖐️",
+      "title": "Let's Count!",
+      "body": "We say one number for each thing and stop when we've counted them all!"
+    },
+    {
+      "type": "worked_example",
+      "title": "Count your fingers with me!",
+      "steps": [
+        "Hold up your hand ✋",
+        "Touch your thumb and say... 1",
+        "Touch your little finger and say... 5 🖐️"
+      ]
+    },
+    {
+      "type": "multiple_choice",
+      "question": "How many apples? 🍎 🍎 🍎",
+      "options": ["1", "2", "3", "4"],
+      "correct": 2,
+      "hint": "Count them out loud: one... two... three..."
+    },
+    {
+      "type": "celebration",
+      "message": "You can count to 5! Amazing work! 🎉"
+    }
+  ]
+}
+```
+
+**XP and scoring:**
+- Correct on first attempt → full XP share for that question
+- Correct after hints → half XP
+- Answer revealed → 0 XP
+- ⭐⭐⭐ = all correct first try | ⭐⭐ = completed with hints | ⭐ = completed
+
+**Existing lesson files:**
+
+| File | Lesson | Key stage |
+|---|---|---|
+| `public/lessons/nursery-counting-to-5.json` | Counting Together: 1 to 5 | Nursery |
+| `src/data/example-adding-fractions.json` | Adding Fractions (same denominator) | KS2 |
+
+---
+
 ## Architecture
 
 ```
