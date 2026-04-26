@@ -63,7 +63,7 @@ Per-game checks before marking complete:
 - [ ] 036 - `dinosaurs-when-they-lived.html` -> `/games/ks2-lab/dinosaurs-when-they-lived/index.html` - suggested course: KS2 History
 - [ ] 037 - `fall-of-rome.html` -> `/games/ks2-lab/fall-of-rome/index.html` - suggested course: KS2 History
 - [ ] 038 - `famous-people-from-history.html` -> `/games/ks2-lab/famous-people-from-history/index.html` - suggested course: KS2 History
-- [ ] 039 - `fractions.html` -> `/games/ks2-lab/fractions/index.html` - suggested course: KS2 Maths
+- [x] 039 - `fractions.html` -> `/games/ks2-lab/fractions/index.html` - suggested course: KS2 Maths
 - [ ] 040 - `historical-sources-evidence.html` -> `/games/ks2-lab/historical-sources-evidence/index.html` - suggested course: KS2 History
 - [ ] 041 - `jesus-and-early-christianity.html` -> `/games/ks2-lab/jesus-and-early-christianity/index.html` - suggested course: KS2 History
 - [ ] 042 - `kings-and-prophets.html` -> `/games/ks2-lab/kings-and-prophets/index.html` - suggested course: KS2 History

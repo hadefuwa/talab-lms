@@ -52,7 +52,7 @@ export default function GameLesson({ lesson, orgId, existingProgress }: Props) {
 
   const sep = lesson.game_path?.includes('?') ? '&' : '?';
   const gameSrc = `${lesson.game_path}${sep}passScore=${lesson.game_pass_score ?? 5}&t=${reloadKey}`;
-  const isWideGame = lesson.game_path?.includes("/ks1-lab/");
+  const isWideGame = lesson.game_path?.includes("/ks1-lab/") || lesson.game_path?.includes("/ks2-lab/");
 
   return (
     <div className="space-y-4">
