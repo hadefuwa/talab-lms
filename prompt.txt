@@ -1,0 +1,15 @@
+You are working on Talab LMS — a homeschool Learning Management System built with Next.js 15, Supabase, Cloudflare R2, and Vercel. Before doing anything else, read these files in order:
+
+CLAUDE.md — architecture, conventions, file structure, and gotchas. This is your primary reference.
+SETUP.md — full setup guide including the content authoring workflow for all four lesson types (Reading, Video, Game, Interactive).
+agents.md — the AI features in the product (Gemini lesson assistant, TTS) and how to configure or extend them.
+README.md — high-level overview if you need a quick orientation.
+Key things to know before writing any code:
+
+All TypeScript types live in src/lib/types.ts. If you add a column, update this file or the Vercel build will fail.
+Database changes go in supabase/migrations/ as numbered SQL files. Apply with npx supabase db push --linked.
+Interactive lesson content lives in public/lessons/*.json — content changes are just a git push, no database update needed.
+Never use fill_blank blocks in lessons for nursery or KS1 — young children cannot type. Use multiple_choice instead.
+Run npm run build locally before pushing if you've changed any types — TypeScript errors fail the Vercel build.
+
+please always push to git when done
