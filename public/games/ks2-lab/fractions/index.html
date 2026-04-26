@@ -91,12 +91,12 @@
 </div>
 
 <script>
-    let level = 1;
+    let level = 4;
     try {
         const urlParams = new URLSearchParams(window.location.search);
-        level = parseInt(urlParams.get('level')) || 1;
+        level = parseInt(urlParams.get('level')) || 4;
     } catch (e) {
-        level = 1;
+        level = 4;
     }
 
     const levelConfig = {
