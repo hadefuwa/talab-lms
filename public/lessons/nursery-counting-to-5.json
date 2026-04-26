@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "xp_reward": 50,
+  "blocks": [
+    {
+      "type": "explanation",
+      "emoji": "🖐️",
+      "title": "Let's Count!",
+      "body": "Counting tells us how many things there are. We say one number for each thing and stop when we've counted them all!"
+    },
+    {
+      "type": "worked_example",
+      "title": "Count your fingers with me!",
+      "steps": [
+        "Hold up your hand ✋",
+        "Touch your thumb and say... 1",
+        "Touch the next finger and say... 2",
+        "Touch the next finger and say... 3",
+        "Touch the next finger and say... 4",
+        "Touch your little finger and say... 5 🖐️",
+        "You counted to 5! 🎉"
+      ]
+    },
+    {
+      "type": "multiple_choice",
+      "question": "How many apples? 🍎 🍎 🍎",
+      "options": ["1", "2", "3", "4"],
+      "correct": 2,
+      "hint": "Count them out loud: one... two... three..."
+    },
+    {
+      "type": "multiple_choice",
+      "question": "Count the ducks: 🦆 🦆",
+      "options": ["1", "2", "3"],
+      "correct": 1,
+      "hint": "Count each duck: one duck, two ducks..."
+    },
+    {
+      "type": "multiple_choice",
+      "question": "How many stars? ⭐ ⭐ ⭐ ⭐",
+      "options": ["2", "3", "4", "5"],
+      "correct": 2,
+      "hint": "Point to each star and count: 1, 2, 3, 4..."
+    },
+    {
+      "type": "multiple_choice",
+      "question": "Count the frogs: 🐸 🐸 🐸 🐸 🐸",
+      "options": ["3", "4", "5", "6"],
+      "correct": 2,
+      "hint": "Touch each frog and count: 1, 2, 3, 4, 5..."
+    },
+    {
+      "type": "multiple_choice",
+      "question": "How many bananas? 🍌 🍌 🍌",
+      "options": ["1", "2", "3", "4"],
+      "correct": 2,
+      "hint": "Touch each banana and count them."
+    },
+    {
+      "type": "celebration",
+      "message": "You can count to 5! Amazing work! 🎉"
+    }
+  ]
+}

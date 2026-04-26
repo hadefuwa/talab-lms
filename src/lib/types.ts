@@ -41,6 +41,7 @@ export interface Lesson {
   position: number;
   duration_seconds: number | null;
   lesson_type: "content" | "video" | "game" | "interactive";
+  content_path: string | null;
   game_path: string | null;
   game_pass_score: number | null;
   created_at: string;

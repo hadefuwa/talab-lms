@@ -68,7 +68,7 @@ export default async function LessonPage({ params }: Props) {
               <h1 className="text-2xl font-black text-slate-800 mt-3">{lesson.title}</h1>
             </div>
 
-            {lesson.lesson_type === "interactive" && lesson.content_body ? (
+            {lesson.lesson_type === "interactive" && (lesson.content_path || lesson.content_body) ? (
               <InteractiveLessonPlayer lesson={lesson} orgId={profile?.org_id ?? ""} existingProgress={progress} />
             ) : lesson.lesson_type === "game" && lesson.game_path ? (
               <GameLesson lesson={lesson} orgId={profile?.org_id ?? ""} existingProgress={progress} />

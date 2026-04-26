@@ -81,23 +81,48 @@ interface Props {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function InteractiveLessonPlayer({ lesson, orgId, existingProgress }: Props) {
-  const lessonData: LessonData | null = (() => {
-    try {
-      return JSON.parse(lesson.content_body ?? "");
-    } catch {
-      return null;
-    }
-  })();
-
+  const [lessonData, setLessonData] = useState<LessonData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [blockStates, setBlockStates] = useState<BlockState[]>(
-    () => (lessonData?.blocks ?? []).map(defaultBlockState)
-  );
+  const [blockStates, setBlockStates] = useState<BlockState[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const alreadyCompleted = existingProgress?.status === "completed";
+
+  useEffect(() => {
+    async function load() {
+      let data: LessonData | null = null;
+      if (lesson.content_path) {
+        try {
+          const res = await fetch(`/lessons/${lesson.content_path}`);
+          data = await res.json();
+        } catch {
+          data = null;
+        }
+      } else {
+        try {
+          data = JSON.parse(lesson.content_body ?? "");
+        } catch {
+          data = null;
+        }
+      }
+      setLessonData(data);
+      setBlockStates((data?.blocks ?? []).map(defaultBlockState));
+      setLoading(false);
+    }
+    load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson.content_path, lesson.content_body]);
+
+  if (loading) {
+    return (
+      <div className="bg-white border border-slate-100 rounded-2xl p-12 text-center text-slate-400">
+        Loading lesson…
+      </div>
+    );
+  }
 
   if (!lessonData) {
     return (
