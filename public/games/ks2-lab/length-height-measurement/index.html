@@ -1,628 +1,436 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Length and Height - Reception Fun Lesson</title>
-    <style>
-        body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-            background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
-            margin: 0;
-            padding: 20px;
-            height: 100vh; overflow-y: auto;
-            animation: bgAnimation 10s infinite alternate;
-        }
-        
-        @keyframes bgAnimation {
-            0% { background-position: 0% 0%; }
-            100% { background-position: 100% 100%; }
-        }
-        
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background-color: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .container::before {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
-            z-index: 0;
-        }
-        
-        .container > * {
-            position: relative;
-            z-index: 1;
-        }
-        
-        h1 {
-            color: #ff6b6b;
-            text-align: center;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-            animation: titleBounce 2s infinite alternate;
-        }
-        
-        @keyframes titleBounce {
-            from { transform: translateY(0); }
-            to { transform: translateY(-5px); }
-        }
-        
-        .subtitle {
-            text-align: center;
-            color: #4ecdc4;
-            font-size: 1.2em;
-            margin-bottom: 30px;
-        }
-        
-        .activity-card {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            border-left: 5px solid #4ecdc4;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease;
-        }
-        
-        .activity-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .activity-title {
-            color: #45b7d1;
-            font-size: 1.5em;
-            margin-bottom: 15px;
-        }
-        
-        .instructions {
-            background: #e8f4f8;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-        }
-        
-        .comparison-box {
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-end;
-            height: 250px;
-            margin: 20px 0;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .object {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            transition: transform 0.3s, opacity 0.3s;
-            position: relative;
-        }
-        
-        .object:hover {
-            transform: scale(1.15);
-            z-index: 10;
-        }
-        
-        .object.selected {
-            box-shadow: 0 0 20px #4ecdc4;
-            border-radius: 5px;
-        }
-        
-        .object-shape {
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
-        
-        .object-label {
-            margin-top: 10px;
-            font-weight: bold;
-            color: #333;
-            text-align: center;
-            font-size: 0.9em;
-        }
-        
-        .button {
-            background: #4ecdc4;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 1em;
-            cursor: pointer;
-            margin: 10px 5px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .button:hover {
-            background: #45b7d1;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-        }
-        
-        .button:active {
-            transform: translateY(1px);
-        }
-        
-        .game-area {
-            text-align: center;
-            padding: 20px;
-            background: #fff3cd;
-            border-radius: 15px;
-            margin: 20px 0;
-        }
-        
-        .feedback {
-            padding: 10px;
-            border-radius: 10px;
-            margin: 10px 0;
-            text-align: center;
-            font-weight: bold;
-            animation: fadeIn 0.5s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        .correct {
-            background: #d4edda;
-            color: #155724;
-            animation: celebrate 0.5s 3;
-        }
-        
-        @keyframes celebrate {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        .incorrect {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .measurement-units {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        
-        .unit {
-            width: 50px;
-            height: 20px;
-            background: #ff6b6b;
-            border: 1px solid #ddd;
-        }
-        
-        .unit-hand {
-            width: 30px;
-            height: 30px;
-            background: #9370DB;
-            border-radius: 50%;
-        }
-        
-        .unit-foot {
-            width: 60px;
-            height: 25px;
-            background: #32CD32;
-            border-radius: 10px;
-        }
-        
-        .unit-pencil {
-            width: 10px;
-            height: 50px;
-            background: #FFD700;
-        }
-        
-        .difficulty-controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        .difficulty-btn {
-            padding: 8px 15px;
-            font-size: 0.9em;
-        }
-        
-        .current-difficulty {
-            font-weight: bold;
-            color: #45b7d1;
-        }
-        
-        .sound-icon {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 1.5em;
-            cursor: pointer;
-            color: #ccc;
-        }
-        
-        .sound-icon.active {
-            color: #4ecdc4;
-        }
-        
-        .confetti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #f00;
-            opacity: 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shortest to Tallest!</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
+      background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: white;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    /* ── Header ── */
+    #header {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px 0;
+      flex-shrink: 0;
+    }
+    #title { font-size: clamp(1.1rem, 3vw, 1.6rem); font-weight: 900; }
+    #title span { color: #fbbf24; }
+    #hud { display: flex; gap: 14px; font-size: clamp(0.85rem, 2vw, 1rem); font-weight: 700; }
+    .hud-chip {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 999px;
+      padding: 5px 14px;
+    }
+    .hud-chip span { color: #fbbf24; }
+
+    /* ── Instruction ── */
+    #instruction {
+      margin-top: 10px;
+      font-size: clamp(0.85rem, 2.2vw, 1.1rem);
+      font-weight: 700;
+      background: rgba(251,191,36,0.12);
+      border: 1px solid rgba(251,191,36,0.3);
+      border-radius: 12px;
+      padding: 7px 22px;
+      color: #fde68a;
+      flex-shrink: 0;
+    }
+
+    /* ── Game area ── */
+    #game-area {
+      flex: 1;
+      width: 100%;
+      max-width: 900px;
+      position: relative;
+      padding: 0 16px;
+      min-height: 0;
+    }
+
+    .object-col {
+      position: absolute;
+      bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .object-col:hover { transform: translateY(-4px) scale(1.04); }
+
+    .object-emoji {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      line-height: 1;
+      margin-bottom: 6px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+      transition: transform 0.2s;
+    }
+
+    .object-bar {
+      width: clamp(44px, 7vw, 68px);
+      border-radius: 8px 8px 4px 4px;
+      transition: filter 0.2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    }
+
+    .object-label {
+      margin-top: 8px;
+      font-size: clamp(0.68rem, 1.7vw, 0.88rem);
+      font-weight: 800;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      max-width: 80px;
+    }
+
+    .object-col.correct { cursor: default; pointer-events: none; }
+    .object-col.correct .object-bar {
+      outline: 3px solid #4ade80;
+      filter: brightness(1.25) drop-shadow(0 0 8px rgba(74,222,128,0.7));
+    }
+    .object-col.correct .object-label { color: #4ade80; }
+
+    .object-col.wrong { animation: shake 0.4s ease; }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-10px); }
+      40%     { transform: translateX(10px); }
+      60%     { transform: translateX(-7px); }
+      80%     { transform: translateX(7px); }
+    }
+
+    /* ── Feedback ── */
+    #feedback {
+      flex-shrink: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(0.82rem, 1.9vw, 0.98rem);
+      font-weight: 700;
+    }
+
+    /* ── Progress dots ── */
+    #progress-dots {
+      flex-shrink: 0;
+      display: flex;
+      gap: 8px;
+      padding-bottom: 14px;
+    }
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      transition: background 0.3s;
+    }
+    .dot.done    { background: #4ade80; }
+    .dot.current { background: #fbbf24; }
+
+    /* ── Overlays ── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.82);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 100; gap: 0; padding: 24px;
+    }
+    .overlay.hidden { display: none; }
+
+    .panel {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 2px solid rgba(255,255,255,0.12);
+      border-radius: 24px;
+      padding: 36px 48px;
+      text-align: center;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    }
+    .big-emoji { font-size: clamp(3rem, 8vw, 4.5rem); margin-bottom: 10px; }
+    .panel h2 { font-size: clamp(1.4rem, 4vw, 1.9rem); font-weight: 900; margin-bottom: 10px; }
+    .panel p { color: #94a3b8; font-size: clamp(0.9rem, 2vw, 1rem); line-height: 1.6; }
+    .panel p strong { color: white; }
+
+    .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+    .btn {
+      padding: 13px 32px;
+      font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 0.12s;
+    }
+    .btn:active { transform: translateY(2px); }
+    .btn-yellow { background: #fbbf24; color: #1e293b; box-shadow: 0 4px 0 #d97706; }
+    .btn-blue   { background: #3b82f6; color: white;   box-shadow: 0 4px 0 #1d4ed8; }
+
+    /* Green flash on round complete */
+    #round-flash {
+      position: fixed; inset: 0;
+      background: rgba(74,222,128,0.12);
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    #round-flash.show { opacity: 1; }
+  </style>
 </head>
 <body>
-    <div class="sound-icon" id="soundIcon" onclick="toggleSound()">🔇</div>
-    
-    <div class="container">
-        <h1>📏 Measuring Length & Height 📏</h1>
-        <div class="subtitle">Fun with sizes and comparisons!</div>
-        
-        <div class="activity-card">
-            <div class="activity-title">What is Length and Height?</div>
-            <div class="instructions">
-                <p><strong>Length</strong> is how long something is from one end to the other.</p>
-                <p><strong>Height</strong> is how tall something is from bottom to top.</p>
-                <p>Let's explore by comparing different objects!</p>
-            </div>
-            
-            <div class="comparison-box" id="comparisonBox">
-                <div class="object" onclick="selectObject('pencil', 80)">
-                    <div class="object-shape" style="height: 80px; width: 10px; background: #8B4513;"></div>
-                    <div class="object-label">Pencil</div>
-                </div>
-                <div class="object" onclick="selectObject('book', 120)">
-                    <div class="object-shape" style="height: 120px; width: 80px; background: #FF6347;"></div>
-                    <div class="object-label">Book</div>
-                </div>
-                <div class="object" onclick="selectObject('chair', 180)">
-                    <div class="object-shape" style="height: 180px; width: 60px; background: #228B22;"></div>
-                    <div class="object-label">Chair</div>
-                </div>
-                <div class="object" onclick="selectObject('tree', 200)">
-                    <div class="object-shape" style="height: 200px; width: 40px; background: #8FBC8F;"></div>
-                    <div class="object-label">Tree</div>
-                </div>
-                <div class="object" onclick="selectObject('ruler', 150)">
-                    <div class="object-shape" style="height: 150px; width: 5px; background: #1E90FF;"></div>
-                    <div class="object-label">Ruler</div>
-                </div>
-                <div class="object" onclick="selectObject('table', 100)">
-                    <div class="object-shape" style="height: 100px; width: 100px; background: #D2691E;"></div>
-                    <div class="object-label">Table</div>
-                </div>
-                <div class="object" onclick="selectObject('person', 160)">
-                    <div class="object-shape" style="height: 160px; width: 30px; background: #FFB6C1;"></div>
-                    <div class="object-label">Person</div>
-                </div>
-                <div class="object" onclick="selectObject('car', 60)">
-                    <div class="object-shape" style="height: 60px; width: 120px; background: #708090;"></div>
-                    <div class="object-label">Car</div>
-                </div>
-            </div>
-            
-            <div id="selectionFeedback"></div>
-        </div>
-        
-        <div class="activity-card">
-            <div class="activity-title">Compare Objects</div>
-            <div class="instructions">
-                <p>Click on two objects to compare their heights!</p>
-            </div>
-            
-            <button class="button" onclick="compareObjects()">Compare Selected Objects</button>
-            <div id="compareResult"></div>
-        </div>
-        
-        <div class="activity-card">
-            <div class="activity-title">Measurement Units</div>
-            <div class="instructions">
-                <p>We can measure length and height using different units:</p>
-                <div class="measurement-units">
-                    <div class="unit unit-hand" title="Hand span"></div>
-                    <div class="unit unit-foot" title="Foot length"></div>
-                    <div class="unit unit-pencil" title="Pencil length"></div>
-                    <div class="unit" style="background: #4169E1;" title="Ruler/cm"></div>
-                </div>
-                <p>Try measuring objects around you using your hand span or foot length!</p>
-            </div>
-        </div>
-        
-        <div class="activity-card">
-            <div class="activity-title">Difficulty Level</div>
-            <div class="instructions">
-                <p>Adjust the difficulty level for the games:</p>
-                <div class="difficulty-controls">
-                    <span class="current-difficulty" id="difficultyDisplay">Easy</span>
-                    <button class="button difficulty-btn" onclick="setDifficulty('easy')">Easy</button>
-                    <button class="button difficulty-btn" onclick="setDifficulty('medium')">Medium</button>
-                    <button class="button difficulty-btn" onclick="setDifficulty('hard')">Hard</button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="activity-card">
-            <div class="activity-title">Measurement Game</div>
-            <div class="instructions">
-                <p>Guess which object is taller or longer!</p>
-            </div>
-            
-            <div class="game-area">
-                <div id="gameQuestion">Which object is taller?</div>
-                <div id="gameComparison">
-                    <!-- Game objects will appear here -->
-                </div>
-                <div id="gameButtons">
-                    <!-- Buttons will appear here -->
-                </div>
-                <div id="gameFeedback"></div>
-            </div>
-            
-            <button class="button" onclick="startGame()">Start Game</button>
-        </div>
-        
-        <div class="activity-card">
-            <div class="activity-title">Real Life Comparisons</div>
-            <div class="instructions">
-                <p>Find these objects around your home and compare them:</p>
-                <ul>
-                    <li>Your pencil vs your ruler</li>
-                    <li>Your chair vs your table</li>
-                    <li>You vs your sibling</li>
-                    <li>Your toy car vs your toy truck</li>
-                    <li>Your bed vs your desk</li>
-                    <li>Your shoes vs your boots</li>
-                </ul>
-                <button class="button" onclick="alert('Go find and compare these objects around your home!')">Try It!</button>
-            </div>
-        </div>
+
+<div id="header">
+  <div id="title">📏 <span>Shortest</span> to Tallest!</div>
+  <div id="hud">
+    <div class="hud-chip">Round <span id="round-num">1</span>/5</div>
+    <div class="hud-chip">⭐ <span id="score-val">0</span></div>
+  </div>
+</div>
+
+<div id="instruction">Click the objects from <strong>SHORTEST → TALLEST</strong> 🎯</div>
+
+<div id="game-area"></div>
+
+<div id="feedback"></div>
+
+<div id="progress-dots">
+  <div class="dot current" id="dot-0"></div>
+  <div class="dot" id="dot-1"></div>
+  <div class="dot" id="dot-2"></div>
+  <div class="dot" id="dot-3"></div>
+  <div class="dot" id="dot-4"></div>
+</div>
+
+<div id="round-flash"></div>
+
+<!-- Intro -->
+<div class="overlay" id="intro-overlay">
+  <div class="panel">
+    <div class="big-emoji">📏</div>
+    <h2>Shortest to Tallest!</h2>
+    <p>You'll see <strong>4 objects</strong> of different heights.<br>
+       Click them in order from <strong>SHORTEST to TALLEST</strong>.<br>
+       5 rounds — can you get them all? 🏆</p>
+    <div class="btn-row">
+      <button class="btn btn-yellow" onclick="startGame()">Let's Go! 🚀</button>
     </div>
+  </div>
+</div>
 
-    <audio id="correctSound" preload="auto">
-        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
-    </audio>
-    <audio id="incorrectSound" preload="auto">
-        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
-    </audio>
+<!-- End screen -->
+<div class="overlay hidden" id="end-overlay">
+  <div class="panel">
+    <div class="big-emoji" id="end-emoji">🏆</div>
+    <h2 id="end-title">Amazing!</h2>
+    <p id="end-msg"></p>
+    <div class="btn-row">
+      <button class="btn btn-blue" onclick="restartGame()">Play Again</button>
+    </div>
+  </div>
+</div>
 
-    <script>
-        let selectedObjects = [];
-        let soundEnabled = false;
-        let difficulty = 'easy';
-        let objects = [
-            {name: 'Pencil', height: 80, color: '#8B4513', shape: 'thin'},
-            {name: 'Book', height: 120, color: '#FF6347', shape: 'wide'},
-            {name: 'Chair', height: 180, color: '#228B22', shape: 'rect'},
-            {name: 'Tree', height: 200, color: '#8FBC8F', shape: 'slim'},
-            {name: 'Ruler', height: 150, color: '#1E90FF', shape: 'thin'},
-            {name: 'Table', height: 100, color: '#D2691E', shape: 'wide'},
-            {name: 'Person', height: 160, color: '#FFB6C1', shape: 'thin'},
-            {name: 'Car', height: 60, color: '#708090', shape: 'long'},
-            {name: 'Giraffe', height: 180, color: '#FFD700', shape: 'thin'},
-            {name: 'Elephant', height: 150, color: '#A9A9A9', shape: 'wide'},
-            {name: 'Dog', height: 60, color: '#8B4513', shape: 'long'},
-            {name: 'Cat', height: 40, color: '#FF69B4', shape: 'long'},
-            {name: 'House', height: 220, color: '#CD853F', shape: 'rect'},
-            {name: 'Bird', height: 30, color: '#FF4500', shape: 'thin'},
-            {name: 'Snake', height: 20, color: '#32CD32', shape: 'long'},
-            {name: 'Ladder', height: 190, color: '#DAA520', shape: 'thin'}
-        ];
-        
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            const icon = document.getElementById('soundIcon');
-            icon.textContent = soundEnabled ? '🔊' : '🔇';
-        }
-        
-        function playSound(type) {
-            if (!soundEnabled) return;
-            
-            const audio = document.getElementById(type + 'Sound');
-            if (audio) {
-                audio.currentTime = 0;
-                audio.play().catch(e => console.log("Audio play failed:", e));
-            }
-        }
-        
-        function selectObject(name, height) {
-            if (selectedObjects.length >= 2) {
-                selectedObjects = [];
-                // Remove selected class from all objects
-                document.querySelectorAll('.object').forEach(obj => {
-                    obj.classList.remove('selected');
-                });
-            }
-            
-            selectedObjects.push({name, height});
-            
-            // Add selected class to clicked object
-            event.currentTarget.classList.add('selected');
-            
-            const feedback = document.getElementById('selectionFeedback');
-            feedback.innerHTML = `<div class="feedback">Selected: ${name} (${height}px)</div>`;
-            
-            if (selectedObjects.length === 2) {
-                setTimeout(() => {
-                    compareObjects();
-                }, 500);
-            }
-        }
-        
-        function compareObjects() {
-            if (selectedObjects.length !== 2) {
-                alert('Please select two objects to compare!');
-                return;
-            }
-            
-            const obj1 = selectedObjects[0];
-            const obj2 = selectedObjects[1];
-            
-            let result = '';
-            if (obj1.height > obj2.height) {
-                result = `${obj1.name} is taller than ${obj2.name}`;
-            } else if (obj1.height < obj2.height) {
-                result = `${obj2.name} is taller than ${obj1.name}`;
-            } else {
-                result = `${obj1.name} and ${obj2.name} are the same height`;
-            }
-            
-            document.getElementById('compareResult').innerHTML = 
-                `<div class="feedback">${result}</div>`;
-                
-            // Play sound based on result
-            playSound(obj1.height !== obj2.height ? 'correct' : 'correct'); // Both cases are positive
-            
-            // Reset selections after comparison
-            setTimeout(() => {
-                selectedObjects = [];
-                document.querySelectorAll('.object').forEach(obj => {
-                    obj.classList.remove('selected');
-                });
-                document.getElementById('selectionFeedback').innerHTML = '';
-            }, 2000);
-        }
-        
-        function setDifficulty(level) {
-            difficulty = level;
-            document.getElementById('difficultyDisplay').textContent = 
-                level.charAt(0).toUpperCase() + level.slice(1);
-        }
-        
-        function getGameObjects() {
-            // Different sets of objects based on difficulty
-            switch(difficulty) {
-                case 'easy':
-                    return [
-                        {name: 'Giraffe', height: 180, color: '#FFD700', shape: 'thin'},
-                        {name: 'Elephant', height: 150, color: '#A9A9A9', shape: 'wide'},
-                        {name: 'Dog', height: 60, color: '#8B4513', shape: 'long'},
-                        {name: 'Cat', height: 40, color: '#FF69B4', shape: 'long'}
-                    ];
-                case 'medium':
-                    return [
-                        {name: 'House', height: 220, color: '#CD853F', shape: 'rect'},
-                        {name: 'Tree', height: 200, color: '#8FBC8F', shape: 'slim'},
-                        {name: 'Person', height: 160, color: '#FFB6C1', shape: 'thin'},
-                        {name: 'Chair', height: 180, color: '#228B22', shape: 'rect'}
-                    ];
-                case 'hard':
-                    return [
-                        {name: 'Bird', height: 30, color: '#FF4500', shape: 'thin'},
-                        {name: 'Snake', height: 20, color: '#32CD32', shape: 'long'},
-                        {name: 'Pencil', height: 80, color: '#8B4513', shape: 'thin'},
-                        {name: 'Ruler', height: 150, color: '#1E90FF', shape: 'thin'}
-                    ];
-                default:
-                    return [
-                        {name: 'Giraffe', height: 180, color: '#FFD700', shape: 'thin'},
-                        {name: 'Elephant', height: 150, color: '#A9A9A9', shape: 'wide'},
-                        {name: 'Dog', height: 60, color: '#8B4513', shape: 'long'},
-                        {name: 'Cat', height: 40, color: '#FF69B4', shape: 'long'}
-                    ];
-            }
-        }
-        
-        function startGame() {
-            const gameObjects = getGameObjects();
-            
-            // Randomly select two objects
-            const shuffled = [...gameObjects].sort(() => 0.5 - Math.random());
-            const [obj1, obj2] = shuffled.slice(0, 2);
-            
-            document.getElementById('gameQuestion').textContent = 
-                `Which is taller?`;
-                
-            document.getElementById('gameComparison').innerHTML = `
-                <div class="object">
-                    <div class="object-shape" style="height: ${obj1.height}px; width: ${obj1.shape === 'wide' ? 80 : obj1.shape === 'long' ? 100 : 50}px; background: ${obj1.color}; border-radius: ${obj1.shape === 'round' ? '50%' : '5px'};"></div>
-                    <div class="object-label">${obj1.name}</div>
-                </div>
-                <div class="object">
-                    <div class="object-shape" style="height: ${obj2.height}px; width: ${obj2.shape === 'wide' ? 80 : obj2.shape === 'long' ? 100 : 50}px; background: ${obj2.color}; border-radius: ${obj2.shape === 'round' ? '50%' : '5px'};"></div>
-                    <div class="object-label">${obj2.name}</div>
-                </div>
-            `;
-            
-            document.getElementById('gameButtons').innerHTML = `
-                <button class="button" onclick="checkAnswer('${obj1.name}', '${obj2.name}', ${obj1.height}, ${obj2.height})">${obj1.name}</button>
-                <button class="button" onclick="checkAnswer('${obj2.name}', '${obj1.name}', ${obj2.height}, ${obj1.height})">${obj2.name}</button>
-            `;
-        }
-        
-        function checkAnswer(selected, other, selectedHeight, otherHeight) {
-            const feedback = document.getElementById('gameFeedback');
-            if (selectedHeight > otherHeight) {
-                feedback.innerHTML = '<div class="feedback correct">Correct! Great job! 🎉</div>';
-                playSound('correct');
-                createConfetti();
-                
-                // Send message to parent window to signal completion after a delay
-                setTimeout(() => {
-                    window.parent.postMessage({
-                        type: 'GAME_OVER',
-                        game: 'length-height-measurement', score: 1
-                    }, '*');
-                }, 1500);
-            } else {
-                feedback.innerHTML = '<div class="feedback incorrect">Try again! Remember, the taller object reaches higher.</div>';
-                playSound('incorrect');
-            }
-        }
-        
-        function createConfetti() {
-            const container = document.querySelector('.container');
-            for (let i = 0; i < 50; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.top = '-10px';
-                confetti.style.backgroundColor = getRandomColor();
-                confetti.style.opacity = '1';
-                container.appendChild(confetti);
-                
-                // Animate confetti falling
-                const animation = confetti.animate([
-                    { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
-                    { transform: `translateY(${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
-                ], {
-                    duration: Math.random() * 3000 + 2000,
-                    easing: 'cubic-bezier(0.1, 0.8, 0.2, 1)'
-                });
-                
-                animation.onfinish = () => confetti.remove();
-            }
-        }
-        
-        function getRandomColor() {
-            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff'];
-            return colors[Math.floor(Math.random() * colors.length)];
-        }
-    </script>
+<script>
+const ROUNDS = [
+  [
+    { name: "Pencil",   emoji: "✏️",  h: 19,   color: "#f59e0b" },
+    { name: "Chair",    emoji: "🪑",  h: 80,   color: "#8b5cf6" },
+    { name: "Door",     emoji: "🚪",  h: 200,  color: "#06b6d4" },
+    { name: "Tree",     emoji: "🌳",  h: 500,  color: "#22c55e" },
+  ],
+  [
+    { name: "Mouse",    emoji: "🐭",  h: 8,    color: "#94a3b8" },
+    { name: "Dog",      emoji: "🐕",  h: 60,   color: "#f97316" },
+    { name: "Horse",    emoji: "🐴",  h: 160,  color: "#a78bfa" },
+    { name: "Giraffe",  emoji: "🦒",  h: 570,  color: "#fbbf24" },
+  ],
+  [
+    { name: "Ant",      emoji: "🐜",  h: 1,    color: "#dc2626" },
+    { name: "Cat",      emoji: "🐱",  h: 25,   color: "#f472b6" },
+    { name: "Person",   emoji: "🧍",  h: 170,  color: "#38bdf8" },
+    { name: "Elephant", emoji: "🐘",  h: 330,  color: "#6b7280" },
+  ],
+  [
+    { name: "Cup",      emoji: "☕",  h: 10,   color: "#d97706" },
+    { name: "Lamp",     emoji: "💡",  h: 50,   color: "#facc15" },
+    { name: "Fridge",   emoji: "🧊",  h: 180,  color: "#0ea5e9" },
+    { name: "Building", emoji: "🏢",  h: 2000, color: "#64748b" },
+  ],
+  [
+    { name: "Worm",     emoji: "🪱",  h: 10,   color: "#84cc16" },
+    { name: "Rabbit",   emoji: "🐇",  h: 30,   color: "#e2e8f0" },
+    { name: "Lion",     emoji: "🦁",  h: 120,  color: "#f59e0b" },
+    { name: "Dinosaur", emoji: "🦕",  h: 900,  color: "#4ade80" },
+  ],
+];
+
+let currentRound = 0;
+let score = 0;
+let nextCorrectIndex = 0;
+let objects = [];
+let wrongStreak = 0;
+
+function startGame() {
+  document.getElementById('intro-overlay').classList.add('hidden');
+  loadRound();
+}
+
+function loadRound() {
+  nextCorrectIndex = 0;
+  wrongStreak = 0;
+  setFeedback('');
+  updateHUD();
+
+  const raw = ROUNDS[currentRound];
+  objects = [...raw].sort((a, b) => a.h - b.h);
+  renderObjects(shuffle([...raw]));
+}
+
+function renderObjects(displayOrder) {
+  const area = document.getElementById('game-area');
+  area.innerHTML = '';
+
+  const areaW = area.clientWidth || 800;
+  const areaH = area.clientHeight || 400;
+
+  const heights = displayOrder.map(o => o.h);
+  const maxH = Math.max(...heights);
+  const minH = Math.min(...heights);
+  const barMax = areaH * 0.70;
+  const barMin = areaH * 0.13;
+
+  const n = displayOrder.length;
+  const slotW = areaW / n;
+  const colW = Math.min(68, slotW * 0.55);
+
+  displayOrder.forEach((obj, i) => {
+    const norm = maxH === minH ? 0.5 : (obj.h - minH) / (maxH - minH);
+    const barH = barMin + norm * (barMax - barMin);
+
+    const col = document.createElement('div');
+    col.className = 'object-col';
+    col.dataset.name = obj.name;
+
+    const jitter = (Math.random() - 0.5) * slotW * 0.25;
+    const x = slotW * i + slotW / 2 - colW / 2 + jitter;
+    col.style.left = Math.max(4, Math.min(areaW - colW - 4, x)) + 'px';
+
+    col.innerHTML = `
+      <div class="object-emoji">${obj.emoji}</div>
+      <div class="object-bar" style="height:${barH}px;width:${colW}px;background:${obj.color};"></div>
+      <div class="object-label">${obj.name}</div>
+    `;
+
+    col.addEventListener('click', () => handleClick(obj, col));
+    area.appendChild(col);
+  });
+}
+
+function handleClick(obj, col) {
+  const correct = objects[nextCorrectIndex];
+
+  if (obj.name === correct.name) {
+    col.classList.add('correct');
+    col.querySelector('.object-label').textContent = '✓ ' + obj.name;
+    wrongStreak = 0;
+    nextCorrectIndex++;
+
+    if (nextCorrectIndex === objects.length) {
+      setTimeout(roundComplete, 550);
+    } else {
+      const left = objects.length - nextCorrectIndex;
+      setFeedback('✅ Correct! ' + (left === 1 ? 'One more!' : left + ' more to go…'), '#4ade80');
+    }
+  } else {
+    wrongStreak++;
+    col.classList.add('wrong');
+    setTimeout(() => col.classList.remove('wrong'), 450);
+    const hint = wrongStreak >= 2 ? ' — find the <strong>shortest</strong> one!' : '';
+    setFeedback('❌ Not quite' + hint, '#f87171');
+  }
+}
+
+function setFeedback(html, color) {
+  const el = document.getElementById('feedback');
+  el.innerHTML = html;
+  el.style.color = color || 'white';
+}
+
+function roundComplete() {
+  const flash = document.getElementById('round-flash');
+  flash.classList.add('show');
+  setTimeout(() => flash.classList.remove('show'), 400);
+
+  document.getElementById('dot-' + currentRound).classList.replace('current', 'done');
+  score += 20;
+  currentRound++;
+
+  if (currentRound >= ROUNDS.length) {
+    setTimeout(showEnd, 450);
+  } else {
+    document.getElementById('dot-' + currentRound).classList.add('current');
+    setFeedback('🎉 Round complete! Get ready…', '#4ade80');
+    updateHUD();
+    setTimeout(loadRound, 1100);
+  }
+}
+
+function showEnd() {
+  updateHUD();
+  let emoji, title, detail;
+  if      (score >= 100) { emoji = '🏆'; title = 'Perfect Score!';  detail = `You got <strong>${score}/100</strong> — flawless! You really know your heights!`; }
+  else if (score >= 80)  { emoji = '🥇'; title = 'Brilliant!';      detail = `You scored <strong>${score}/100</strong>. Almost perfect — great work!`; }
+  else if (score >= 60)  { emoji = '🥈'; title = 'Well Done!';      detail = `You scored <strong>${score}/100</strong>. Good effort — keep practising!`; }
+  else                   { emoji = '🥉'; title = 'Good Try!';       detail = `You scored <strong>${score}/100</strong>. Have another go to improve!`; }
+
+  document.getElementById('end-emoji').textContent = emoji;
+  document.getElementById('end-title').textContent = title;
+  document.getElementById('end-msg').innerHTML = detail;
+  document.getElementById('end-overlay').classList.remove('hidden');
+
+  try {
+    window.parent.postMessage({ type: 'GAME_OVER', game: 'length-height-measurement', score }, '*');
+  } catch (_) {}
+}
+
+function restartGame() {
+  currentRound = 0; score = 0; nextCorrectIndex = 0;
+  for (let i = 0; i < 5; i++) {
+    const d = document.getElementById('dot-' + i);
+    d.className = 'dot' + (i === 0 ? ' current' : '');
+  }
+  document.getElementById('end-overlay').classList.add('hidden');
+  loadRound();
+}
+
+function updateHUD() {
+  document.getElementById('round-num').textContent = Math.min(currentRound + 1, 5);
+  document.getElementById('score-val').textContent = score;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+</script>
 </body>
 </html>
